@@ -1,10 +1,36 @@
 package com.orbious.tokyo;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import tokyocabinet.HDB;
 import tokyocabinet.Util;
+
+/*
+                key       value
+write           int       Object
+readObject      int       Object
+
+write           long      Object
+readObject      long      Object
+
+write           double    Object
+readObject      double    Object
+
+write           Object    int
+readInt         Object    int
+
+write           Object    long
+readLong        Object    long
+
+write           Object    double
+readDouble      Object    double
+
+write           int       long
+readLong        int       long
+
+write           int       double
+readDouble      int       double
+*/
 
 public class HDBWrapper {
 
@@ -76,19 +102,6 @@ public class HDBWrapper {
     return ByteUtils.bytesToStr(bval);
   }
 
-  public Object readObject(int key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = ByteUtils.intToBytes(key);
-    bval = hdb.get(bkey);
-    if ( bval == null ) {
-      return null;
-    }
-
-    return Util.deserialize(bval);
-  }
-
   public void write(int key, Object obj) throws WrapperException {
     byte[] bkey;
     byte[] bval;
@@ -108,11 +121,11 @@ public class HDBWrapper {
     }
   }
 
-  public Object readObject(long key) {
+  public Object readObject(int key) {
     byte[] bkey;
     byte[] bval;
 
-    bkey = ByteUtils.longToBytes(key);
+    bkey = ByteUtils.intToBytes(key);
     bval = hdb.get(bkey);
     if ( bval == null ) {
       return null;
@@ -140,6 +153,75 @@ public class HDBWrapper {
     }
   }
 
+  public Object readObject(long key) {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = ByteUtils.longToBytes(key);
+    bval = hdb.get(bkey);
+    if ( bval == null ) {
+      return null;
+    }
+
+    return Util.deserialize(bval);
+  }
+
+  public void write(double key, Object obj) throws WrapperException {
+    byte[] bkey;
+    byte[] bval;
+    byte[] orig;
+
+    bkey = ByteUtils.doubleToBytes(key);
+    bval = Util.serialize(obj);
+
+    orig = hdb.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+      return;
+    }
+
+    if  (!hdb.put(bkey, bval) ) {
+      throw new WrapperException("Failed to write key=" + key,
+        HDB.errmsg(hdb.ecode()));
+    }
+  }
+
+  public Object readObject(double key) {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = ByteUtils.doubleToBytes(key);
+    bval = hdb.get(bkey);
+    if ( bval == null ) {
+      return null;
+    }
+
+    return Util.deserialize(bval);
+  }
+
+  public void write(Object key, int value) throws WrapperException {
+    byte[] bkey;
+    byte[] bval;
+    byte[] orig;
+
+    if ( key instanceof String ) {
+      bkey = ByteUtils.strToBytes((String)key);
+    } else {
+      bkey = Util.serialize(key);
+    }
+
+    bval = Util.packint(value);
+
+    orig = hdb.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+      return;
+    }
+
+    if ( !hdb.put(bkey, bval) ) {
+      throw new WrapperException("Failed to write key=" + key, hdb.ecode(),
+        HDB.errmsg(hdb.ecode()));
+    }
+  }
+
   public int readInt(Object key) {
     byte[] bkey;
     byte[] bval;
@@ -158,7 +240,7 @@ public class HDBWrapper {
     return ByteUtils.bytesToInt(bval);
   }
 
-  public void write(Object key, int value) throws WrapperException {
+  public void write(Object key, long value) throws WrapperException {
     byte[] bkey;
     byte[] bval;
     byte[] orig;
@@ -169,7 +251,7 @@ public class HDBWrapper {
       bkey = Util.serialize(key);
     }
 
-    bval = Util.packint(value);
+    bval = ByteUtils.longToBytes(value);
 
     orig = hdb.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -200,7 +282,7 @@ public class HDBWrapper {
     return ByteUtils.bytesToLong(bval);
   }
 
-  public void write(Object key, long value) throws WrapperException {
+  public void write(Object key, double value) throws WrapperException {
     byte[] bkey;
     byte[] bval;
     byte[] orig;
@@ -211,7 +293,7 @@ public class HDBWrapper {
       bkey = Util.serialize(key);
     }
 
-    bval = ByteUtils.longToBytes(value);
+    bval = ByteUtils.doubleToBytes(value);
 
     orig = hdb.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -224,7 +306,38 @@ public class HDBWrapper {
     }
   }
 
-  public double readDouble(int key) {
+  public double readDouble(Object key) {
+    byte[] bkey;
+    byte[] bval;
+
+    if ( key instanceof String ) {
+      bkey = ByteUtils.strToBytes((String)key);
+    } else {
+      bkey = Util.serialize(key);
+    }
+
+    bval = hdb.get(bkey);
+    if ( bval == null ) {
+      return -1;
+    }
+
+    return ByteUtils.bytesToDouble(bval);
+  }
+
+  public void write(int key, long val) throws WrapperException {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = ByteUtils.intToBytes(key);
+    bval = ByteUtils.longToBytes(val);
+
+    if ( !hdb.put(bkey, bval) ) {
+      throw new WrapperException("Failed to write key=" + key, hdb.ecode(),
+          HDB.errmsg(hdb.ecode()));
+    }
+  }
+
+  public long readLong(int key) {
     byte[] bkey;
     byte[] bval;
 
@@ -234,7 +347,7 @@ public class HDBWrapper {
       return -1L;
     }
 
-    return ByteUtils.bytesToDouble(bval);
+    return ByteUtils.bytesToLong(bval);
   }
 
   public void write(int key, double val) throws WrapperException {
@@ -250,29 +363,16 @@ public class HDBWrapper {
     }
   }
 
-  public double readDouble(long key) {
+  public double readDouble(int key) {
     byte[] bkey;
     byte[] bval;
 
-    bkey = ByteUtils.longToBytes(key);
+    bkey = ByteUtils.intToBytes(key);
     bval = hdb.get(bkey);
     if ( bval == null ) {
       return -1L;
     }
 
     return ByteUtils.bytesToDouble(bval);
-  }
-
-  public void write(long key, double val) throws WrapperException {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = ByteUtils.longToBytes(key);
-    bval = ByteUtils.doubleToBytes(val);
-
-    if ( !hdb.put(bkey, bval) ) {
-      throw new WrapperException("Failed to write key=" + key, hdb.ecode(),
-          HDB.errmsg(hdb.ecode()));
-    }
   }
 }
