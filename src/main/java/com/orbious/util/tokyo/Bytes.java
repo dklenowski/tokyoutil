@@ -1,9 +1,39 @@
-package com.orbious.tokyo;
+package com.orbious.util.tokyo;
 
 import java.io.UnsupportedEncodingException;
 import tokyocabinet.Util;
 
-public class ByteUtils {
+public class Bytes {
+
+  public static Object convert(Class<?> clazz, byte[] b) throws UnsupportedEncodingException {
+    if ( clazz == String.class ) {
+      return bytesToStr(b);
+    } else if ( clazz == Integer.class ) {
+      return new Integer(bytesToInt(b));
+    } else if ( clazz == Long.class ) {
+      return new Long(bytesToLong(b));
+    } else if ( clazz == Double.class ) {
+      return new Double(bytesToDouble(b));
+    }
+
+    // try tokyocabinet
+    return Util.deserialize(b);
+  }
+
+  public static byte[] convert(Class<?> clazz, Object obj) {
+    if ( clazz == String.class ) {
+      return strToBytes((String)obj);
+    } else if ( clazz == Integer.class ) {
+      return intToBytes(((Integer)obj).intValue());
+    } else if ( clazz == Long.class ) {
+      return longToBytes(((Long)obj).longValue());
+    } else if ( clazz == Double.class ) {
+      return doubleToBytes(((Double)obj).doubleValue());
+    }
+
+    // try tokyocabinet ..
+    return Util.serialize(obj);
+  }
 
   public static byte[] intToBytes(int i) {
     return Util.packint(i);

@@ -9,5 +9,7 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/usr/local/lib"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/myroot/workspace-java/thirdparty/getopt-1.0.13.jar"/>
+	<classpathentry kind="lib" path="/myroot/workspace-java/thirdparty/log4j-1.2.15.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

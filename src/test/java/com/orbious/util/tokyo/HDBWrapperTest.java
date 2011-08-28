@@ -1,4 +1,4 @@
-package com.orbious.tokyo;
+package com.orbious.util.tokyo;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +15,7 @@ public class HDBWrapperTest {
     HDB hdb;
     hdb = new HDB();
     hdb.open(f.toString(), HDB.OWRITER | HDB.OCREAT);
-    hdb.put(ByteUtils.intToBytes(10), ByteUtils.intToBytes(100));
+    hdb.put(Bytes.intToBytes(10), Bytes.intToBytes(100));
     hdb.close();
   }
 

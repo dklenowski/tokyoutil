@@ -1,7 +1,10 @@
-package com.orbious.tokyo;
+package com.orbious.util.tokyo;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.Vector;
+
 import tokyocabinet.HDB;
 import tokyocabinet.Util;
 
@@ -91,7 +94,7 @@ public class HDBWrapper {
           file.toString(), hdb.ecode(), HDB.errmsg(hdb.ecode()));
     }
 
-    bkey = ByteUtils.strToBytes(key);
+    bkey = Bytes.strToBytes(key);
     bval = hdb.get(bkey);
 
     if ( bval == null ) {
@@ -99,15 +102,52 @@ public class HDBWrapper {
           file.toString());
     }
 
-    return ByteUtils.bytesToStr(bval);
+    return Bytes.bytesToStr(bval);
   }
 
+  public Vector<byte[]> keys() throws WrapperException {
+    Vector<byte[]> keys;
+    byte[] bytes;
+
+    System.out.println("Size=" + hdb.fsiz());
+
+    keys = new Vector<byte[]>((int)hdb.fsiz());
+
+    hdb.iterinit();
+    while ( (bytes = hdb.iternext()) != null ) {
+      keys.add(bytes);
+    }
+
+    return keys;
+  }
+
+  // generic methods, slower because Objects are involved
+  public Object read(Class<?> keyclazz, Object key, Class<?> valueclazz)
+      throws UnsupportedEncodingException {
+    byte[] b = Bytes.convert(keyclazz, key);
+    return read(b, valueclazz);
+  }
+
+  public Object read(byte[] key, Class<?> valueclazz)
+      throws UnsupportedEncodingException {
+    byte[] value;
+
+    value = hdb.get(key);
+    if ( value == null ) {
+      return value;
+    }
+
+    return Bytes.convert(valueclazz, value);
+  }
+
+
+  // optimized methods
   public void write(int key, Object obj) throws WrapperException {
     byte[] bkey;
     byte[] bval;
     byte[] orig;
 
-    bkey = ByteUtils.intToBytes(key);
+    bkey = Bytes.intToBytes(key);
     bval = Util.serialize(obj);
 
     orig = hdb.get(bkey);
@@ -121,11 +161,43 @@ public class HDBWrapper {
     }
   }
 
+  public Object readObject(String key) {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = Bytes.strToBytes(key);
+    bval = hdb.get(bkey);
+    if ( bval == null ) {
+      return null;
+    }
+
+    return Util.deserialize(bval);
+  }
+
+  public void write(String key, Object obj) throws WrapperException {
+    byte[] bkey;
+    byte[] bval;
+    byte[] orig;
+
+    bkey = Bytes.strToBytes(key);
+    bval = Util.serialize(obj);
+
+    orig = hdb.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+      return;
+    }
+
+    if  (!hdb.put(bkey, bval) ) {
+      throw new WrapperException("Failed to write key=" + key,
+        HDB.errmsg(hdb.ecode()));
+    }
+  }
+
   public Object readObject(int key) {
     byte[] bkey;
     byte[] bval;
 
-    bkey = ByteUtils.intToBytes(key);
+    bkey = Bytes.intToBytes(key);
     bval = hdb.get(bkey);
     if ( bval == null ) {
       return null;
@@ -139,7 +211,7 @@ public class HDBWrapper {
     byte[] bval;
     byte[] orig;
 
-    bkey = ByteUtils.longToBytes(key);
+    bkey = Bytes.longToBytes(key);
     bval = Util.serialize(obj);
 
     orig = hdb.get(bkey);
@@ -157,7 +229,7 @@ public class HDBWrapper {
     byte[] bkey;
     byte[] bval;
 
-    bkey = ByteUtils.longToBytes(key);
+    bkey = Bytes.longToBytes(key);
     bval = hdb.get(bkey);
     if ( bval == null ) {
       return null;
@@ -171,7 +243,7 @@ public class HDBWrapper {
     byte[] bval;
     byte[] orig;
 
-    bkey = ByteUtils.doubleToBytes(key);
+    bkey = Bytes.doubleToBytes(key);
     bval = Util.serialize(obj);
 
     orig = hdb.get(bkey);
@@ -189,7 +261,7 @@ public class HDBWrapper {
     byte[] bkey;
     byte[] bval;
 
-    bkey = ByteUtils.doubleToBytes(key);
+    bkey = Bytes.doubleToBytes(key);
     bval = hdb.get(bkey);
     if ( bval == null ) {
       return null;
@@ -204,7 +276,7 @@ public class HDBWrapper {
     byte[] orig;
 
     if ( key instanceof String ) {
-      bkey = ByteUtils.strToBytes((String)key);
+      bkey = Bytes.strToBytes((String)key);
     } else {
       bkey = Util.serialize(key);
     }
@@ -227,7 +299,7 @@ public class HDBWrapper {
     byte[] bval;
 
     if ( key instanceof String ) {
-      bkey = ByteUtils.strToBytes((String)key);
+      bkey = Bytes.strToBytes((String)key);
     } else {
       bkey = Util.serialize(key);
     }
@@ -237,7 +309,7 @@ public class HDBWrapper {
       return -1;
     }
 
-    return ByteUtils.bytesToInt(bval);
+    return Bytes.bytesToInt(bval);
   }
 
   public void write(Object key, long value) throws WrapperException {
@@ -246,12 +318,12 @@ public class HDBWrapper {
     byte[] orig;
 
     if ( key instanceof String ) {
-      bkey = ByteUtils.strToBytes((String)key);
+      bkey = Bytes.strToBytes((String)key);
     } else {
       bkey = Util.serialize(key);
     }
 
-    bval = ByteUtils.longToBytes(value);
+    bval = Bytes.longToBytes(value);
 
     orig = hdb.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -269,7 +341,7 @@ public class HDBWrapper {
     byte[] bval;
 
     if ( key instanceof String ) {
-      bkey = ByteUtils.strToBytes((String)key);
+      bkey = Bytes.strToBytes((String)key);
     } else {
       bkey = Util.serialize(key);
     }
@@ -279,7 +351,7 @@ public class HDBWrapper {
       return -1;
     }
 
-    return ByteUtils.bytesToLong(bval);
+    return Bytes.bytesToLong(bval);
   }
 
   public void write(Object key, double value) throws WrapperException {
@@ -288,12 +360,12 @@ public class HDBWrapper {
     byte[] orig;
 
     if ( key instanceof String ) {
-      bkey = ByteUtils.strToBytes((String)key);
+      bkey = Bytes.strToBytes((String)key);
     } else {
       bkey = Util.serialize(key);
     }
 
-    bval = ByteUtils.doubleToBytes(value);
+    bval = Bytes.doubleToBytes(value);
 
     orig = hdb.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -311,7 +383,7 @@ public class HDBWrapper {
     byte[] bval;
 
     if ( key instanceof String ) {
-      bkey = ByteUtils.strToBytes((String)key);
+      bkey = Bytes.strToBytes((String)key);
     } else {
       bkey = Util.serialize(key);
     }
@@ -321,15 +393,15 @@ public class HDBWrapper {
       return -1;
     }
 
-    return ByteUtils.bytesToDouble(bval);
+    return Bytes.bytesToDouble(bval);
   }
 
   public void write(int key, long val) throws WrapperException {
     byte[] bkey;
     byte[] bval;
 
-    bkey = ByteUtils.intToBytes(key);
-    bval = ByteUtils.longToBytes(val);
+    bkey = Bytes.intToBytes(key);
+    bval = Bytes.longToBytes(val);
 
     if ( !hdb.put(bkey, bval) ) {
       throw new WrapperException("Failed to write key=" + key, hdb.ecode(),
@@ -341,21 +413,21 @@ public class HDBWrapper {
     byte[] bkey;
     byte[] bval;
 
-    bkey = ByteUtils.intToBytes(key);
+    bkey = Bytes.intToBytes(key);
     bval = hdb.get(bkey);
     if ( bval == null ) {
       return -1L;
     }
 
-    return ByteUtils.bytesToLong(bval);
+    return Bytes.bytesToLong(bval);
   }
 
   public void write(int key, double val) throws WrapperException {
     byte[] bkey;
     byte[] bval;
 
-    bkey = ByteUtils.intToBytes(key);
-    bval = ByteUtils.doubleToBytes(val);
+    bkey = Bytes.intToBytes(key);
+    bval = Bytes.doubleToBytes(val);
 
     if ( !hdb.put(bkey, bval) ) {
       throw new WrapperException("Failed to write key=" + key, hdb.ecode(),
@@ -367,12 +439,12 @@ public class HDBWrapper {
     byte[] bkey;
     byte[] bval;
 
-    bkey = ByteUtils.intToBytes(key);
+    bkey = Bytes.intToBytes(key);
     bval = hdb.get(bkey);
     if ( bval == null ) {
       return -1L;
     }
 
-    return ByteUtils.bytesToDouble(bval);
+    return Bytes.bytesToDouble(bval);
   }
 }

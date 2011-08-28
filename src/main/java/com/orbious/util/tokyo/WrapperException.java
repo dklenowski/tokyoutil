@@ -1,4 +1,4 @@
-package com.orbious.tokyo;
+package com.orbious.util.tokyo;
 
 public class WrapperException extends Exception {
 

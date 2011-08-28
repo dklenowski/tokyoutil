@@ -1,20 +1,20 @@
-package com.orbious.tokyo;
+package com.orbious.util.tokyo;
 
-import com.orbious.tokyo.ByteUtils;
+import com.orbious.util.tokyo.Bytes;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-public class ByteUtilsTest {
+public class BytesTest {
 
 	@Test
 	public void type() throws Exception {
-		assertThat(ByteUtils.class, notNullValue());
+		assertThat(Bytes.class, notNullValue());
 	}
 
 	@Test
 	public void instantiation() throws Exception {
-		ByteUtils target = new ByteUtils();
+		Bytes target = new Bytes();
 		assertThat(target, notNullValue());
 	}
 
@@ -24,18 +24,18 @@ public class ByteUtilsTest {
 	  byte[] b;
 
     expected = Integer.MIN_VALUE;
-    b = ByteUtils.intToBytes(expected);
-    actual = ByteUtils.bytesToInt(b);
+    b = Bytes.intToBytes(expected);
+    actual = Bytes.bytesToInt(b);
     assertThat(actual, is(equalTo(expected)));
 
     expected = Integer.MAX_VALUE;
-    b = ByteUtils.intToBytes(expected);
-    actual = ByteUtils.bytesToInt(b);
+    b = Bytes.intToBytes(expected);
+    actual = Bytes.bytesToInt(b);
     assertThat(actual, is(equalTo(expected)));
 
 	  expected = 167;
-	  b = ByteUtils.intToBytes(expected);
-	  actual = ByteUtils.bytesToInt(b);
+	  b = Bytes.intToBytes(expected);
+	  actual = Bytes.bytesToInt(b);
 	  assertThat(actual, is(equalTo(expected)));
 	}
 
@@ -45,18 +45,18 @@ public class ByteUtilsTest {
 	  byte[] b;
 
 	  expected = Long.MIN_VALUE;
-    b = ByteUtils.longToBytes(expected);
-    actual = ByteUtils.bytesToLong(b);
+    b = Bytes.longToBytes(expected);
+    actual = Bytes.bytesToLong(b);
     assertThat(actual, is(equalTo(expected)));
 
     expected = Long.MAX_VALUE;
-    b = ByteUtils.longToBytes(expected);
-    actual = ByteUtils.bytesToLong(b);
+    b = Bytes.longToBytes(expected);
+    actual = Bytes.bytesToLong(b);
     assertThat(actual, is(equalTo(expected)));
 
     expected = 189L;
-    b = ByteUtils.longToBytes(expected);
-    actual = ByteUtils.bytesToLong(b);
+    b = Bytes.longToBytes(expected);
+    actual = Bytes.bytesToLong(b);
     assertThat(actual, is(equalTo(expected)));
 	}
 
@@ -66,18 +66,18 @@ public class ByteUtilsTest {
 	    byte[] b;
 
 	    expected = Double.MIN_VALUE;
-	    b = ByteUtils.doubleToBytes(expected);
-	    actual = ByteUtils.bytesToDouble(b);
+	    b = Bytes.doubleToBytes(expected);
+	    actual = Bytes.bytesToDouble(b);
 	    assertThat(actual, is(equalTo(expected)));
 
 	    expected = Double.MAX_VALUE;
-	    b = ByteUtils.doubleToBytes(expected);
-	    actual = ByteUtils.bytesToDouble(b);
+	    b = Bytes.doubleToBytes(expected);
+	    actual = Bytes.bytesToDouble(b);
 	    assertThat(actual, is(equalTo(expected)));
 
 	    expected = 189L;
-	    b = ByteUtils.doubleToBytes(expected);
-	    actual = ByteUtils.bytesToDouble(b);
+	    b = Bytes.doubleToBytes(expected);
+	    actual = Bytes.bytesToDouble(b);
 	    assertThat(actual, is(equalTo(expected)));
 	  }
 
@@ -87,8 +87,8 @@ public class ByteUtilsTest {
      byte[] b;
 
      expected = "a string";
-     b = ByteUtils.strToBytes(expected);
-     actual = ByteUtils.bytesToStr(b);
+     b = Bytes.strToBytes(expected);
+     actual = Bytes.bytesToStr(b);
      assertThat(actual, is(equalTo(expected)));
    }
 }
