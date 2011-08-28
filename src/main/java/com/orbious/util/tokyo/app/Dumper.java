@@ -79,8 +79,10 @@ public class Dumper {
       if ( keyclass == null ) {
         System.err.println("You must specify a key class?\n");
         usage();
-      } else if ( !keyclass.equals("String") && !keyclass.equals("Integer") &&
-          !keyclass.equals("Long") && !keyclass.equals("Double") ) {
+      } else if ( !keyclass.equals("java.lang.String") &&
+          !keyclass.equals("java.lang.Integer") &&
+          !keyclass.equals("java.lang.Long") &&
+          !keyclass.equals("java.lang.Double") ) {
         System.err.println("Unsupported key class type " + keyclass);
         usage();
       }

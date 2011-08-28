@@ -38,6 +38,7 @@ readDouble      int       double
 public class HDBWrapper {
 
   protected HDB hdb;
+  private boolean readOnly;
 
   public HDBWrapper() { }
 
@@ -54,10 +55,12 @@ public class HDBWrapper {
   }
 
   public void initReader(File file, int maxSize) throws WrapperException {
+    readOnly = true;
     init(file, maxSize, HDB.OREADER | HDB.ONOLCK );
   }
 
   public void initWriter(File file, int maxSize) throws WrapperException {
+    readOnly = false;
     init(file, maxSize, HDB.OWRITER | HDB.OCREAT );
   }
 
@@ -65,6 +68,10 @@ public class HDBWrapper {
   // as long as the calling class does not close it !
   public HDB hdb() {
     return hdb;
+  }
+
+  public boolean readOnly() {
+    return readOnly;
   }
 
   public void close() throws WrapperException {
