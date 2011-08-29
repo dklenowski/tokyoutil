@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import tokyocabinet.HDB;
 import com.orbious.util.tokyo.Bytes;
 import com.orbious.util.tokyo.HDBWrapper;
 import com.orbious.util.tokyo.WrapperException;
@@ -215,7 +214,6 @@ public class Dumper {
 
   private static void dumpKeys(String keyclass, String tokyofile, String outfile) {
     HDBWrapper hdbw;
-    HDB hdb;
     byte[] bytes;
     Class<?> clazz;
     BufferedWriter bw;
@@ -240,12 +238,11 @@ public class Dumper {
     }
 
     // could be big, therefore we must access the hdb directly ..
-    hdb = hdbw.hdb();
-    hdb.iterinit();
+    hdbw.iterinit();
 
     try {
       Object obj;
-      while ( (bytes = hdb.iternext()) != null ) {
+      while ( (bytes = hdbw.iternext()) != null ) {
         obj = Bytes.convert(clazz, bytes);
         bw.write(obj + "\n");
       }

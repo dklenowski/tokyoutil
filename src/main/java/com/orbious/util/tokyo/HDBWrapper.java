@@ -64,10 +64,12 @@ public class HDBWrapper {
     init(file, maxSize, HDB.OWRITER | HDB.OCREAT );
   }
 
-  // sometimes it will be necessary to retreive hdb ..
-  // as long as the calling class does not close it !
-  public HDB hdb() {
-    return hdb;
+  public void iterinit() {
+    hdb.iterinit();
+  }
+
+  public byte[] iternext() {
+    return hdb.iternext();
   }
 
   public boolean readOnly() {
