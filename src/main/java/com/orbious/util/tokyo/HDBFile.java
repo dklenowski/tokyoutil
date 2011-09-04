@@ -30,15 +30,15 @@ public class HDBFile {
       return;
     }
 
-    hdbw = new HDBWrapper();
+    hdbw = new HDBWrapper(file, 10000);
 
     try {
       if ( readOnly ) {
-        hdbw.initReader(file, 10000);
+        hdbw.initReader();
       } else {
-        hdbw.initWriter(file, 1);
+        hdbw.initWriter();
       }
-    } catch ( WrapperException we ) {
+    } catch ( HDBWrapperException we ) {
       throw new HDBFileException("Failed to open sentence file" + file, we);
     }
   }
@@ -51,15 +51,15 @@ public class HDBFile {
         hdbw.write(Config.stored_key, Config.xmlstr());
       } catch ( ConfigException ce ) {
         e = ce;
-      } catch ( WrapperException we ) {
-        e = we;
+      } catch ( HDBWrapperException hwe ) {
+        e = hwe;
       }
     }
 
     try {
       hdbw.close();
-    } catch ( WrapperException we ) {
-      throw new HDBFileException("Error closing sentence file " + file, we);
+    } catch ( HDBWrapperException hwe ) {
+      throw new HDBFileException("Error closing sentence file " + file, hwe);
     }
 
     if ( e != null ) {
@@ -71,12 +71,8 @@ public class HDBFile {
     return (String)hdbw.readObject(Config.stored_key);
   }
 
-  public void iterinit() {
-    hdbw.iterinit();
-  }
-
-  public byte[] iternext() {
-    return hdbw.iternext();
+  public HDBWrapper hdbw() {
+    return hdbw;
   }
 
   @Override

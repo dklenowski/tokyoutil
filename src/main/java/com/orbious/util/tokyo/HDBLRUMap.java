@@ -1,0 +1,184 @@
+package com.orbious.util.tokyo;
+
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import org.apache.commons.collections15.map.AbstractLinkedMap;
+import org.apache.commons.collections15.map.LRUMap;
+import org.apache.log4j.Logger;
+import com.orbious.util.Loggers;
+
+public class HDBLRUMap<K, V> extends LRUMap<K, V> {
+
+  private static final long serialVersionUID = 1L;
+
+  private final File filestore;
+  private final Class<K> kclazz;
+  private final Class<V> vclazz;
+  private final boolean readOnly;
+  private final int maxSize;
+  protected HDBWrapper hdbw;
+  private Logger logger;
+
+  public HDBLRUMap(File filestore, Class<K> keyclazz, Class<V> valueclazz,
+      int maxSize, boolean readOnly) {
+    super();
+
+    this.filestore = filestore;
+    this.kclazz = keyclazz;
+    this.vclazz = valueclazz;
+    this.maxSize = maxSize;
+    this.readOnly = readOnly;
+    this.logger = Loggers.logger();
+  }
+
+  public void load() throws HDBLRUMapException {
+    if ( readOnly && !filestore.exists() ) {
+      throw new HDBLRUMapException("Cannot open " + filestore.toString() +
+          " readOnly, file does not exist?");
+    }
+
+    hdbw = new HDBWrapper(filestore, maxSize);
+    try {
+      if ( readOnly ) {
+        logger.info("Loading " + filestore.toString() + " readOnly");
+        hdbw.initReader();
+      } else {
+        logger.info("Loading " + filestore.toString() + " readWrite");
+        hdbw.initWriter();
+      }
+    } catch ( HDBWrapperException hwe ) {
+      throw new HDBLRUMapException("Failed to initialise HDB", hwe);
+    }
+  }
+
+  @Override
+  public void clear() {
+    super.clear();
+    if ( readOnly ) {
+      return;
+    }
+
+    hdbw.hdb.vanish();
+  }
+
+  public void close() throws HDBLRUMapException {
+    if ( hdbw == null ) {
+      return;
+    }
+
+    logger.info("Closing " + filestore.toString());
+
+    boolean error = false;
+    if ( !readOnly ) {
+      error = closeWrite();
+    }
+
+    try {
+      hdbw.close();
+    } catch ( HDBWrapperException hwe ) {
+      error = true;
+      logger.fatal("Failed to close " + filestore.toString(), hwe);
+
+    }
+
+    if ( error ) {
+      throw new HDBLRUMapException("Error closing " + filestore.toString() +
+          ", please check the error log for more details.");
+    }
+  }
+
+  private boolean closeWrite() {
+    if ( readOnly ) {
+      return false;
+    }
+
+    boolean error;
+    error = false;
+
+    Object[] keys;
+    K key;
+    V value;
+
+    keys  = this.keySet().toArray();
+    logger.info("Writing " + keys.length + " keys in memory");
+
+    for ( int i = 0; i < keys.length; i++ ) {
+      key = kclazz.cast(keys[i]);
+      value = this.get(key);
+
+      if ( logger.isDebugEnabled() ) {
+        logger.debug("Writing key=" + key.toString() + " to " + filestore.getName());
+      }
+      write(key, value);
+    }
+
+    return error;
+  }
+
+  @Override
+  public V get(Object key) {
+    if ( this.containsKey(key) ) {
+      if ( logger.isDebugEnabled() ) {
+        logger.debug("Cache hit for key '" + key.toString() + "' in " +
+            filestore.getName());
+      }
+
+      return super.get(key);
+    }
+
+    if ( logger.isDebugEnabled() ) {
+      logger.debug("Cache miss for key '" + key.toString() + "' in " +
+          filestore.getName());
+    }
+
+    return read( kclazz.cast(key) );
+  }
+
+  private V read(K key) {
+    byte[] kbytes;
+    byte[] vbytes;
+
+    kbytes = Bytes.convert(kclazz, key);
+    vbytes = hdbw.read(kbytes);
+
+    if ( vbytes == null ) {
+      if ( logger.isDebugEnabled() ) {
+        logger.debug("Failed to find value for key '" + key.toString() + "'");
+      }
+      return null;
+    }
+
+    V val = null;
+    try {
+    val = vclazz.cast(Bytes.convert(vclazz, vbytes));
+    } catch ( UnsupportedEncodingException uee ) {
+      logger.fatal("Failed to convert value for key '" + key.toString() + "'");
+      return null;
+    }
+
+    super.put(key, val);
+    return val;
+  }
+
+  private void write(K key, V value)  {
+    if ( readOnly ) {
+      return;
+    }
+
+    hdbw.write(kclazz, key, vclazz, value);
+  }
+
+  @Override
+  protected boolean removeLRU(AbstractLinkedMap.LinkEntry<K, V> entry) {
+    if ( readOnly ) {
+      return true;
+    }
+
+    if ( logger.isDebugEnabled() ) {
+      logger.debug("Committing '" + entry.getKey() + "' to " + filestore.toString());
+    }
+
+    write(entry.getKey(), entry.getValue());
+    return true;
+  }
+}

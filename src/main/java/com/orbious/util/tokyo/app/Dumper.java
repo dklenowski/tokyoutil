@@ -8,7 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import com.orbious.util.tokyo.Bytes;
 import com.orbious.util.tokyo.HDBWrapper;
-import com.orbious.util.tokyo.WrapperException;
+import com.orbious.util.tokyo.HDBWrapperException;
 import gnu.getopt.Getopt;
 
 public class Dumper {
@@ -167,12 +167,12 @@ public class Dumper {
 
     kb = Bytes.convert(kclazz, keystr);
 
-    hdbw = new HDBWrapper();
+    hdbw = new HDBWrapper(new File(tokyofile), 1);
     try {
-      hdbw.initReader(new File(tokyofile), 1);
-    } catch ( WrapperException we ) {
+      hdbw.initReader();
+    } catch ( HDBWrapperException hwe ) {
       System.err.println("Error opening tokyo file " + tokyofile.toString());
-      we.printStackTrace();
+      hwe.printStackTrace();
       return;
     }
 
@@ -209,7 +209,7 @@ public class Dumper {
 
     try {
       hdbw.close();
-    } catch ( WrapperException ignored ) { }
+    } catch ( HDBWrapperException ignored ) { }
   }
 
   private static void dumpKeys(String keyclass, String tokyofile, String outfile) {
@@ -228,12 +228,12 @@ public class Dumper {
       return;
     }
 
-    hdbw = new HDBWrapper();
+    hdbw = new HDBWrapper(new File(tokyofile), 1);
     try {
-      hdbw.initReader(new File(tokyofile), 1);
-    } catch ( WrapperException we ) {
+      hdbw.initReader();
+    } catch ( HDBWrapperException hwe ) {
       System.err.println("Error opening tokyo file " + tokyofile.toString());
-      we.printStackTrace();
+      hwe.printStackTrace();
       return;
     }
 
@@ -260,7 +260,7 @@ public class Dumper {
 
     try {
       hdbw.close();
-    } catch ( WrapperException ignored ) { }
+    } catch ( HDBWrapperException ignored ) { }
   }
 
 }

@@ -25,15 +25,15 @@ public class HDBWrapperTest {
 	}
 
   @Test
-  public void initReader() throws IOException, WrapperException {
+  public void initReader() throws IOException, HDBWrapperException {
     File f;
     HDBWrapper hdbw;
 
     f = File.createTempFile("WrapperTest", ".hdb");
     createTmpTokyoFile(f);
 
-    hdbw = new HDBWrapper();
-    hdbw.initReader(f, 10);
+    hdbw = new HDBWrapper(f, 10);
+    hdbw.initReader();
     assertThat(hdbw, notNullValue());
     assertThat(hdbw.hdb, notNullValue());
 
@@ -41,15 +41,15 @@ public class HDBWrapperTest {
     assertThat(hdbw.hdb, nullValue());
   }
 
-  @Test(expected=WrapperException.class)
-  public void cannotWriteToReader() throws IOException, WrapperException {
+  @Test(expected=HDBWrapperException.class)
+  public void cannotWriteToReader() throws IOException, HDBWrapperException {
     File f;
     HDBWrapper hdbw;
 
     f = File.createTempFile("WrapperTest", ".hdb");
 
-    hdbw = new HDBWrapper();
-    hdbw.initReader(f, 10);
+    hdbw = new HDBWrapper(f, 10);
+    hdbw.initReader();
     assertThat(hdbw, notNullValue());
     assertThat(hdbw.hdb, notNullValue());
 
@@ -58,14 +58,14 @@ public class HDBWrapperTest {
   }
 
   @Test
-  public void initWriter() throws IOException, WrapperException {
+  public void initWriter() throws IOException, HDBWrapperException {
     File f;
     HDBWrapper hdbw;
 
     f = File.createTempFile("WrapperTest", ".hdb");
 
-    hdbw = new HDBWrapper();
-    hdbw.initWriter(f, 1);
+    hdbw = new HDBWrapper(f, 1);
+    hdbw.initWriter();
 
     assertThat(hdbw, notNullValue());
     assertThat(hdbw.hdb, notNullValue());
@@ -75,15 +75,15 @@ public class HDBWrapperTest {
   }
 
   @Test
-  public void canWriteToWriter() throws IOException, WrapperException {
+  public void canWriteToWriter() throws IOException, HDBWrapperException {
     File f;
     HDBWrapper hdbw;
     String actual;
 
     f = File.createTempFile("WrapperTest", ".hdb");
 
-    hdbw = new HDBWrapper();
-    hdbw.initWriter(f, 1);
+    hdbw = new HDBWrapper(f, 1);
+    hdbw.initWriter();
 
     assertThat(hdbw, notNullValue());
     assertThat(hdbw.hdb, notNullValue());
@@ -96,14 +96,14 @@ public class HDBWrapperTest {
   }
 
   @Test
-  public void intkeys() throws IOException, WrapperException {
+  public void intkeys() throws IOException, HDBWrapperException {
     File f;
     HDBWrapper hdbw;
 
     f = File.createTempFile("WrapperTest", ".hdb");
 
-    hdbw = new HDBWrapper();
-    hdbw.initWriter(f, 1);
+    hdbw = new HDBWrapper(f, 1);
+    hdbw.initWriter();
 
     assertThat(hdbw, notNullValue());
     assertThat(hdbw.hdb, notNullValue());
@@ -117,7 +117,10 @@ public class HDBWrapperTest {
     assertThat(hdbw.readDouble(25), is(equalTo(15D)));
 
     hdbw.close();
-    hdbw.initReader(f, 1);
+
+
+    hdbw = new HDBWrapper(f, 1);
+    hdbw.initReader();
 
     assertThat((String)hdbw.readObject(10), is(equalTo("string value")));
     assertThat(hdbw.readLong(20), is(equalTo(20L)));
