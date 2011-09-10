@@ -6,9 +6,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import com.orbious.util.tokyo.Bytes;
-import com.orbious.util.tokyo.HDBWrapper;
-import com.orbious.util.tokyo.HDBWrapperException;
+import com.orbious.util.Bytes;
+import com.orbious.util.tokyo.HDBStorage;
+import com.orbious.util.tokyo.StorageException;
 import gnu.getopt.Getopt;
 
 public class Dumper {
@@ -144,7 +144,7 @@ public class Dumper {
   private static void dumpValue(String keystr, String keyclass, String valueclass,
       String tokyofile, String outfile) {
     BufferedWriter bw;
-    HDBWrapper hdbw;
+    HDBStorage hdb;
     Class<?> kclazz;
     byte[] kb;
     Class<?> vclazz;
@@ -167,17 +167,17 @@ public class Dumper {
 
     kb = Bytes.convert(kclazz, keystr);
 
-    hdbw = new HDBWrapper(new File(tokyofile), 1);
+    hdb = new HDBStorage(new File(tokyofile), 1, true);
     try {
-      hdbw.initReader();
-    } catch ( HDBWrapperException hwe ) {
+      hdb.open();
+    } catch ( StorageException se ) {
       System.err.println("Error opening tokyo file " + tokyofile.toString());
-      hwe.printStackTrace();
+      se.printStackTrace();
       return;
     }
 
     try {
-      value = hdbw.read(kb, vclazz);
+      value = hdb.read(kb, vclazz);
     } catch ( UnsupportedEncodingException uee ) {
       System.err.println("The value class (" + valueclass + ") is not supported");
       uee.printStackTrace();
@@ -208,12 +208,12 @@ public class Dumper {
     }
 
     try {
-      hdbw.close();
-    } catch ( HDBWrapperException ignored ) { }
+      hdb.close();
+    } catch ( StorageException ignored ) { }
   }
 
   private static void dumpKeys(String keyclass, String tokyofile, String outfile) {
-    HDBWrapper hdbw;
+    HDBStorage hdb;
     byte[] bytes;
     Class<?> clazz;
     BufferedWriter bw;
@@ -228,21 +228,26 @@ public class Dumper {
       return;
     }
 
-    hdbw = new HDBWrapper(new File(tokyofile), 1);
+    hdb = new HDBStorage(new File(tokyofile), 1, true);
     try {
-      hdbw.initReader();
-    } catch ( HDBWrapperException hwe ) {
+      hdb.open();
+    } catch ( StorageException se ) {
       System.err.println("Error opening tokyo file " + tokyofile.toString());
-      hwe.printStackTrace();
+      se.printStackTrace();
       return;
     }
 
     // could be big, therefore we must access the hdb directly ..
-    hdbw.iterinit();
+    try {
+      hdb.iterinit();
+    } catch ( StorageException se ) {
+      System.err.println("Failed to initialise iterator for tokyo file" +
+          tokyofile.toString());
+    }
 
     try {
       Object obj;
-      while ( (bytes = hdbw.iternext()) != null ) {
+      while ( (bytes = hdb.iternext()) != null ) {
         obj = Bytes.convert(clazz, bytes);
         bw.write(obj + "\n");
       }
@@ -259,8 +264,8 @@ public class Dumper {
     }
 
     try {
-      hdbw.close();
-    } catch ( HDBWrapperException ignored ) { }
+      hdb.close();
+    } catch ( StorageException ignored ) { }
   }
 
 }

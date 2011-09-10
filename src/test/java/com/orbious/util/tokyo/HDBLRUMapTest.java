@@ -4,6 +4,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import java.io.File;
 import org.junit.Test;
+
+import com.orbious.util.Bytes;
 import com.orbious.util.Loggers;
 import tokyocabinet.HDB;
 
@@ -36,7 +38,7 @@ public class HDBLRUMapTest {
     HDBLRUMap<String, Integer> map;
 
     f = File.createTempFile("HDBLRUMapTest", ".hdb");
-    map = new HDBLRUMap<String, Integer>(f, String.class, Integer.class, 10, false);
+    map = new HDBLRUMap<String, Integer>(f, String.class, Integer.class, 10, 10, false);
     map.load();
 
     for ( int i = 0; i < 100; i++ ) {
@@ -44,7 +46,7 @@ public class HDBLRUMapTest {
     }
     map.close();
 
-    map = new HDBLRUMap<String, Integer>(f, String.class, Integer.class, 10, true);
+    map = new HDBLRUMap<String, Integer>(f, String.class, Integer.class, 10, 10, true);
     map.load();
 
     for ( int i = 0; i < 100; i++ ) {
@@ -61,7 +63,7 @@ public class HDBLRUMapTest {
     f = File.createTempFile("HDBLRUMapTest", ".hdb");
     createTmpTokyoFile(f);
 
-    map = new HDBLRUMap<String, Integer>(f, String.class, Integer.class, 10, true);
+    map = new HDBLRUMap<String, Integer>(f, String.class, Integer.class, 10, 10, true);
     map.load();
 
     for ( int i = 0; i < 100; i++ ) {

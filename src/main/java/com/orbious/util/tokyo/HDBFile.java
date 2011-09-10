@@ -6,77 +6,78 @@ import com.orbious.util.config.ConfigException;
 
 public class HDBFile {
 
-  protected final File file;
-  protected HDBWrapper hdbw;
+  protected final File filestore;
+  private final int tokyoSize;
+  private final boolean readOnly;
 
-  public HDBFile(File file) {
-    this.file = file;
+//  protected HDBWrapper hdbw;
+
+  public HDBFile(File filestore, int tokyoSize, boolean readOnly) {
+    this.filestore = filestore;
+    this.tokyoSize = tokyoSize;
+    this.readOnly = readOnly;
   }
 
-  public HDBFile(String name) {
-    this.file = new File(name);
+  public HDBFile(String name, int tokyoSize, boolean readOnly) {
+    this(new File(name), tokyoSize, readOnly);
   }
 
-  public boolean exists() {
-    if ( file == null ) {
-      return false;
-    }
-
-    return file.exists();
-  }
-
-  public void init(boolean readOnly) throws HDBFileException {
-    if ( hdbw != null ) {
-      return;
-    }
-
-    hdbw = new HDBWrapper(file, 10000);
-
-    try {
-      if ( readOnly ) {
-        hdbw.initReader();
-      } else {
-        hdbw.initWriter();
-      }
-    } catch ( HDBWrapperException we ) {
-      throw new HDBFileException("Failed to open sentence file" + file, we);
-    }
-  }
-
-  public void close() throws HDBFileException {
-    Exception e = null;
-
-    if ( !hdbw.readOnly() ) {
-      try {
-        hdbw.write(Config.stored_key, Config.xmlstr());
-      } catch ( ConfigException ce ) {
-        e = ce;
-      } catch ( HDBWrapperException hwe ) {
-        e = hwe;
-      }
-    }
-
-    try {
-      hdbw.close();
-    } catch ( HDBWrapperException hwe ) {
-      throw new HDBFileException("Error closing sentence file " + file, hwe);
-    }
-
-    if ( e != null ) {
-      throw new HDBFileException("Failed to write config to " + file.toString(), e);
-    }
-  }
-
-  public String cfgstr() {
-    return (String)hdbw.readObject(Config.stored_key);
-  }
-
-  public HDBWrapper hdbw() {
-    return hdbw;
-  }
-
-  @Override
-  public String toString() {
-    return file.toString();
-  }
+//  public boolean exists() {
+//    if ( filestore == null ) {
+//      return false;
+//    }
+//
+//    return filestore.exists();
+//  }
+//
+//  public void open() throws FileException {
+//    if ( hdbw != null ) {
+//      return;
+//    }
+//
+//    hdbw = new HDBWrapper(filestore, tokyoSize, readOnly);
+//    try {
+//      hdbw.open();
+//    } catch ( WrapperException we ) {
+//      throw new FileException("Failed to open sentence file" + filestore, we);
+//    }
+//  }
+//
+//  public void close() throws FileException {
+//    Exception e = null;
+//
+//    if ( !hdbw.readOnly() ) {
+//      try {
+//        hdbw.write(Config.stored_key, Config.xmlstr());
+//      } catch ( ConfigException ce ) {
+//        e = ce;
+//      } catch ( WrapperException hwe ) {
+//        e = hwe;
+//      }
+//    }
+//
+//    try {
+//      hdbw.close();
+//    } catch ( WrapperException hwe ) {
+//      throw new FileException("Error closing hdb file " + filestore, hwe);
+//    }
+//
+//    if ( e != null ) {
+//      throw new FileException("Failed to write config to " +
+//          filestore.toString(), e);
+//    }
+//  }
+//
+//  public String cfgstr() {
+//    return (String)hdbw.readObject(Config.stored_key);
+//  }
+//
+//  public HDBWrapper hdbw() {
+//    return hdbw;
+//  }
+//
+//  @Override
+//  public String toString() {
+//    return filestore.toString();
+//  }
 }

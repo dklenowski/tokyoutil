@@ -5,6 +5,8 @@ import java.io.UnsupportedEncodingException;
 import org.apache.commons.collections15.map.AbstractLinkedMap;
 import org.apache.commons.collections15.map.LRUMap;
 import org.apache.log4j.Logger;
+
+import com.orbious.util.Bytes;
 import com.orbious.util.Loggers;
 
 public class HDBLRUMap<K, V> extends LRUMap<K, V> {
@@ -15,18 +17,20 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
   private final Class<K> kclazz;
   private final Class<V> vclazz;
   private final boolean readOnly;
-  private final int maxSize;
-  protected HDBWrapper hdbw;
+
+  private final int tokyoSize;
+
+  private HDBStorage hdbs;
   private Logger logger;
 
   public HDBLRUMap(File filestore, Class<K> keyclazz, Class<V> valueclazz,
-      int maxSize, boolean readOnly) {
-    super();
+      int mapSize, int tokyoSize, boolean readOnly) {
+    super(mapSize);
 
     this.filestore = filestore;
     this.kclazz = keyclazz;
     this.vclazz = valueclazz;
-    this.maxSize = maxSize;
+    this.tokyoSize = tokyoSize;
     this.readOnly = readOnly;
     this.logger = Loggers.logger();
   }
@@ -37,17 +41,11 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
           " readOnly, file does not exist?");
     }
 
-    hdbw = new HDBWrapper(filestore, maxSize);
+    hdbs = new HDBStorage(filestore, tokyoSize, readOnly);
     try {
-      if ( readOnly ) {
-        logger.info("Loading " + filestore.toString() + " readOnly");
-        hdbw.initReader();
-      } else {
-        logger.info("Loading " + filestore.toString() + " readWrite");
-        hdbw.initWriter();
-      }
-    } catch ( HDBWrapperException hwe ) {
-      throw new HDBLRUMapException("Failed to initialise HDB", hwe);
+      hdbs.open();
+    } catch ( StorageException se ) {
+      throw new HDBLRUMapException("Failed to initialise HDB", se);
     }
   }
 
@@ -58,11 +56,11 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
       return;
     }
 
-    hdbw.hdb.vanish();
+    hdbs.vanish();
   }
 
   public void close() throws HDBLRUMapException {
-    if ( hdbw == null ) {
+    if ( hdbs == null ) {
       return;
     }
 
@@ -74,10 +72,10 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
     }
 
     try {
-      hdbw.close();
-    } catch ( HDBWrapperException hwe ) {
+      hdbs.close();
+    } catch ( StorageException se ) {
       error = true;
-      logger.fatal("Failed to close " + filestore.toString(), hwe);
+      logger.fatal("Failed to close " + filestore.toString(), se);
 
     }
 
@@ -135,13 +133,13 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
   }
 
   private V read(K key) {
-    byte[] kbytes;
-    byte[] vbytes;
+    byte[] bkey;
+    byte[] bval;
 
-    kbytes = Bytes.convert(kclazz, key);
-    vbytes = hdbw.read(kbytes);
+    bkey = Bytes.convert(kclazz, key);
+    bval = hdbs.read(bkey);
 
-    if ( vbytes == null ) {
+    if ( bkey == null ) {
       if ( logger.isDebugEnabled() ) {
         logger.debug("Failed to find value for key '" + key.toString() + "'");
       }
@@ -150,7 +148,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
 
     V val = null;
     try {
-    val = vclazz.cast(Bytes.convert(vclazz, vbytes));
+    val = vclazz.cast(Bytes.convert(vclazz, bval));
     } catch ( UnsupportedEncodingException uee ) {
       logger.fatal("Failed to convert value for key '" + key.toString() + "'");
       return null;
@@ -165,7 +163,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
       return;
     }
 
-    hdbw.write(kclazz, key, vclazz, value);
+    hdbs.write(kclazz, key, vclazz, value);
   }
 
   @Override
