@@ -17,7 +17,7 @@ public class HDBStorage extends Storage {
   }
 
   public static String read(File file, String key) throws StorageException {
-    return Storage.read(HDB.class, file, key);
+    return Storage.read(file, HDB.class, key);
   }
 
   /*
@@ -31,7 +31,11 @@ public class HDBStorage extends Storage {
     byte[] orig;
 
     bkey = Bytes.intToBytes(key);
-    bval = Util.serialize(obj);
+    if ( obj instanceof byte[] ) {
+      bval = (byte[])obj;
+    } else {
+      bval = Util.serialize(obj);
+    }
 
     orig = dbm.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -55,6 +59,32 @@ public class HDBStorage extends Storage {
     }
 
     return Util.deserialize(bval);
+  }
+
+  public void write(int key, int val) throws StorageException {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = Bytes.intToBytes(key);
+    bval = Bytes.intToBytes(val);
+
+    if ( !dbm.put(bkey, bval) ) {
+      throw new StorageException("Failed to write key " + key + " to " +
+          filestore.toString(), ecode(), errmsg());
+    }
+  }
+
+  public int readInt(int key) {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = Bytes.intToBytes(key);
+    bval = dbm.get(bkey);
+    if ( bval == null ) {
+      return -1;
+    }
+
+    return Bytes.bytesToInt(bval);
   }
 
   public void write(int key, long val) throws StorageException {
@@ -116,7 +146,11 @@ public class HDBStorage extends Storage {
     byte[] orig;
 
     bkey = Bytes.longToBytes(key);
-    bval = Util.serialize(obj);
+    if ( obj instanceof byte[] ) {
+      bval = (byte[])obj;
+    } else {
+      bval = Util.serialize(obj);
+    }
 
     orig = dbm.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -149,7 +183,11 @@ public class HDBStorage extends Storage {
     byte[] orig;
 
     bkey = Bytes.doubleToBytes(key);
-    bval = Util.serialize(obj);
+    if ( obj instanceof byte[] ) {
+      bval = (byte[])obj;
+    } else {
+      bval = Util.serialize(obj);
+    }
 
     orig = dbm.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {

@@ -21,7 +21,7 @@ public class HDBLRUMapTest {
     hdb.open(f.toString(), HDB.OWRITER | HDB.OCREAT);
 
     for ( int i = 0; i < 1000; i++ ) {
-      hdb.put(Bytes.strToBytes(Integer.toString(i)), Bytes.convert(Integer.class, i));
+      hdb.put(Bytes.strToBytes(Integer.toString(i)), Bytes.convert(i, Integer.class));
     }
     hdb.put(Bytes.intToBytes(10), Bytes.intToBytes(100));
     hdb.close();

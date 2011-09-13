@@ -165,7 +165,7 @@ public class Dumper {
       return;
     }
 
-    kb = Bytes.convert(kclazz, keystr);
+    kb = Bytes.convert(keystr, kclazz);
 
     hdb = new HDBStorage(new File(tokyofile), 1, true);
     try {
@@ -248,7 +248,7 @@ public class Dumper {
     try {
       Object obj;
       while ( (bytes = hdb.iternext()) != null ) {
-        obj = Bytes.convert(clazz, bytes);
+        obj = Bytes.convert(bytes, clazz);
         bw.write(obj + "\n");
       }
     } catch ( IOException ioe ) {

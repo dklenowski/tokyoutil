@@ -136,7 +136,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
     byte[] bkey;
     byte[] bval;
 
-    bkey = Bytes.convert(kclazz, key);
+    bkey = Bytes.convert(key, kclazz);
     bval = hdbs.read(bkey);
 
     if ( bkey == null ) {
@@ -148,7 +148,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
 
     V val = null;
     try {
-    val = vclazz.cast(Bytes.convert(vclazz, bval));
+    val = vclazz.cast(Bytes.convert(bval, vclazz));
     } catch ( UnsupportedEncodingException uee ) {
       logger.fatal("Failed to convert value for key '" + key.toString() + "'");
       return null;
@@ -163,7 +163,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
       return;
     }
 
-    hdbs.write(kclazz, key, vclazz, value);
+    hdbs.write(key, kclazz, value, vclazz);
   }
 
   @Override

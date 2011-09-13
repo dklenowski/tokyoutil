@@ -17,7 +17,7 @@ public class FDBStorage extends Storage {
   }
 
   public static String read(File file, String key) throws StorageException {
-    return Storage.read(FDB.class, file, key);
+    return Storage.read(file, FDB.class, key);
   }
 
   /*
@@ -29,9 +29,12 @@ public class FDBStorage extends Storage {
     byte[] bval;
     byte[] orig;
 
-    // for fdb we need to convert the int to a string ..
-    bkey = Bytes.strToBytes( Integer.toString(key) );
-    bval = Util.serialize(obj);
+    bkey = Bytes.strToBytes(Integer.toString(key));
+    if ( obj instanceof byte[] ) {
+      bval = (byte[])obj;
+    } else {
+      bval = Util.serialize(obj);
+    }
 
     orig = dbm.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -55,6 +58,32 @@ public class FDBStorage extends Storage {
     }
 
     return Util.deserialize(bval);
+  }
+
+  public void write(int key, int val) throws StorageException {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = Bytes.strToBytes(Integer.toString(key));
+    bval = Bytes.intToBytes(val);
+
+    if ( !dbm.put(bkey, bval) ) {
+      throw new StorageException("Failed to write key " + key + " to " +
+          filestore.toString(), ecode(), errmsg());
+    }
+  }
+
+  public int readInt(int key) {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = Bytes.strToBytes(Integer.toString(key));
+    bval = dbm.get(bkey);
+    if ( bval == null ) {
+      return -1;
+    }
+
+    return Bytes.bytesToInt(bval);
   }
 
   public void write(int key, long val) throws StorageException {
@@ -116,7 +145,11 @@ public class FDBStorage extends Storage {
     byte[] orig;
 
     bkey = Bytes.strToBytes(Long.toString(key));
-    bval = Util.serialize(obj);
+    if ( obj instanceof byte[] ) {
+      bval = (byte[])obj;
+    } else {
+      bval = Util.serialize(obj);
+    }
 
     orig = dbm.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -149,7 +182,11 @@ public class FDBStorage extends Storage {
     byte[] orig;
 
     bkey = Bytes.strToBytes(Double.toString(key));
-    bval = Util.serialize(obj);
+    if ( obj instanceof byte[] ) {
+      bval = (byte[])obj;
+    } else {
+      bval = Util.serialize(obj);
+    }
 
     orig = dbm.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -174,6 +211,4 @@ public class FDBStorage extends Storage {
 
     return Util.deserialize(bval);
   }
-
-
 }

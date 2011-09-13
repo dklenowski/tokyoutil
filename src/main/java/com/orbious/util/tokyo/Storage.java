@@ -19,6 +19,8 @@ public abstract class Storage {
 
   public abstract void write(int key, Object obj) throws StorageException;
   public abstract Object readObject(int key);
+  public abstract void write(int key, int val) throws StorageException;
+  public abstract int readInt(int key);
   public abstract void write(int key, long val) throws StorageException;
   public abstract long readLong(int key);
   public abstract void write(int key, double val) throws StorageException;
@@ -158,13 +160,13 @@ public abstract class Storage {
   }
 
   // for one off stuff, e.g. to read specific keys from files ..
-  protected static String read(Class<?> clazz, File file, String key)
+  protected static String read(File file, Class<?> fileclazz, String key)
       throws StorageException {
     DBM dbm;
 
-    if ( clazz == HDB.class ) {
+    if ( fileclazz == HDB.class ) {
       dbm = openhdb(file, -1, true);
-    } else if ( clazz == FDB.class ) {
+    } else if ( fileclazz == FDB.class ) {
       dbm = openfdb(file, true);
     } else {
       throw new UnsupportedOperationException(
@@ -239,9 +241,13 @@ public abstract class Storage {
   /*
    * The following methods are generic methods, therefore slower ..
    */
-  public Object read(Class<?> keyclazz, Object key, Class<?> valueclazz)
+  public Object read(Object key, Class<?> keyclazz, Class<?> valueclazz)
       throws UnsupportedEncodingException {
-    byte[] bkey = Bytes.convert(keyclazz, key);
+    byte[] bkey = Bytes.convert(key, keyclazz);
+    if ( bkey == null ) {
+      return null;
+    }
+
     return read(bkey, valueclazz);
   }
 
@@ -254,11 +260,11 @@ public abstract class Storage {
       return value;
     }
 
-    return Bytes.convert(valueclazz, value);
+    return Bytes.convert(value, valueclazz);
   }
 
-  public void write(Class<?> keyclazz, Object key, Class<?> valueclazz, Object value) {
-    dbm.put(Bytes.convert(keyclazz, key), Bytes.convert(valueclazz, value));
+  public void write(Object key, Class<?> keyclazz, Object value, Class<?> valueclazz) {
+    dbm.put(Bytes.convert(key, keyclazz), Bytes.convert(value, valueclazz));
   }
 
   /*
@@ -277,7 +283,7 @@ public abstract class Storage {
       return null;
     }
 
-    return Util.deserialize(bval);
+    return Bytes.deserialize(bval);
   }
 
   public void write(String key, Object obj) throws StorageException {
@@ -286,7 +292,11 @@ public abstract class Storage {
     byte[] orig;
 
     bkey = Bytes.strToBytes(key);
-    bval = Util.serialize(obj);
+    if ( obj instanceof byte[] ) {
+      bval = (byte[])obj;
+    } else {
+      bval = Util.serialize(obj);
+    }
 
     orig = dbm.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -305,13 +315,8 @@ public abstract class Storage {
     byte[] bval;
     byte[] orig;
 
-    if ( key instanceof String ) {
-      bkey = Bytes.strToBytes((String)key);
-    } else {
-      bkey = Util.serialize(key);
-    }
-
-    bval = Util.packint(value);
+    bkey = Bytes.serialize(key);
+    bval = Bytes.intToBytes(value);
 
     orig = dbm.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
@@ -328,12 +333,7 @@ public abstract class Storage {
     byte[] bkey;
     byte[] bval;
 
-    if ( key instanceof String ) {
-      bkey = Bytes.strToBytes((String)key);
-    } else {
-      bkey = Util.serialize(key);
-    }
-
+    bkey = Bytes.serialize(key);
     bval = dbm.get(bkey);
     if ( bval == null ) {
       return -1;
@@ -347,12 +347,7 @@ public abstract class Storage {
     byte[] bval;
     byte[] orig;
 
-    if ( key instanceof String ) {
-      bkey = Bytes.strToBytes((String)key);
-    } else {
-      bkey = Util.serialize(key);
-    }
-
+    bkey = Bytes.serialize(key);
     bval = Bytes.longToBytes(value);
 
     orig = dbm.get(bkey);
@@ -370,12 +365,7 @@ public abstract class Storage {
     byte[] bkey;
     byte[] bval;
 
-    if ( key instanceof String ) {
-      bkey = Bytes.strToBytes((String)key);
-    } else {
-      bkey = Util.serialize(key);
-    }
-
+    bkey = Bytes.serialize(key);
     bval = dbm.get(bkey);
     if ( bval == null ) {
       return -1;
@@ -389,12 +379,7 @@ public abstract class Storage {
     byte[] bval;
     byte[] orig;
 
-    if ( key instanceof String ) {
-      bkey = Bytes.strToBytes((String)key);
-    } else {
-      bkey = Util.serialize(key);
-    }
-
+    bkey = Bytes.serialize(key);
     bval = Bytes.doubleToBytes(value);
 
     orig = dbm.get(bkey);
@@ -412,12 +397,7 @@ public abstract class Storage {
     byte[] bkey;
     byte[] bval;
 
-    if ( key instanceof String ) {
-      bkey = Bytes.strToBytes((String)key);
-    } else {
-      bkey = Util.serialize(key);
-    }
-
+    bkey = Bytes.serialize(key);
     bval = dbm.get(bkey);
     if ( bval == null ) {
       return -1;
