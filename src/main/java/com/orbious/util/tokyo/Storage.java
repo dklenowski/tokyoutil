@@ -51,6 +51,10 @@ public abstract class Storage {
     return readOnly;
   }
 
+  public String filename() {
+    return filestore.toString();
+  }
+
   public void iterinit() throws StorageException {
     if ( dbm == null ) {
       throw new StorageException("Tokyo storage has not been initialized?");
@@ -310,6 +314,38 @@ public abstract class Storage {
   }
 
   // object keys
+  public void write(Object key, short value) throws StorageException {
+    byte[] bkey;
+    byte[] bval;
+    byte[] orig;
+
+    bkey = Bytes.serialize(key);
+    bval = Bytes.shortToBytes(value);
+
+    orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+      return;
+    }
+
+    if ( !dbm.put(bkey, bval) ) {
+      throw new StorageException("Failed to write key " + key + " to " +
+          filestore.toString(), ecode(), errmsg());
+    }
+  }
+
+  public short readShort(Object key) {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = Bytes.serialize(key);
+    bval = dbm.get(bkey);
+    if ( bval == null ) {
+      return -1;
+    }
+
+    return Bytes.bytesToShort(bval);
+  }
+
   public void write(Object key, int value) throws StorageException {
     byte[] bkey;
     byte[] bval;

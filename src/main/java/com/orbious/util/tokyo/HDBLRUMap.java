@@ -139,7 +139,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
     bkey = Bytes.convert(key, kclazz);
     bval = hdbs.read(bkey);
 
-    if ( bkey == null ) {
+    if ( bval == null ) {
       if ( logger.isDebugEnabled() ) {
         logger.debug("Failed to find value for key '" + key.toString() + "'");
       }
@@ -148,7 +148,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
 
     V val = null;
     try {
-    val = vclazz.cast(Bytes.convert(bval, vclazz));
+      val = vclazz.cast(Bytes.convert(bval, vclazz));
     } catch ( UnsupportedEncodingException uee ) {
       logger.fatal("Failed to convert value for key '" + key.toString() + "'");
       return null;
@@ -173,7 +173,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
     }
 
     if ( logger.isDebugEnabled() ) {
-      logger.debug("Committing '" + entry.getKey() + "' to " + filestore.toString());
+      logger.debug("Committing '" + entry.getKey() + "' with '" + entry.getValue() + "'");
     }
 
     write(entry.getKey(), entry.getValue());

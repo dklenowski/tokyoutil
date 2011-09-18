@@ -1,10 +1,9 @@
 package com.orbious.util.tokyo;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 import java.io.File;
 import org.junit.Test;
-
 import com.orbious.util.Bytes;
 import com.orbious.util.Loggers;
 import tokyocabinet.HDB;
@@ -55,6 +54,50 @@ public class HDBLRUMapTest {
     map.close();
   }
 
+  @Test
+  public void writer2() throws Exception {
+    File f;
+    HDBLRUMap<int[], Short> map;
+    int[] a;
+
+    f = File.createTempFile("HDBLRUMapTest", ".hdb");
+    map = new HDBLRUMap<int[], Short>(f, int[].class, Short.class, 10, 10, false);
+    map.load();
+
+    for ( int i = 0; i < 100; i++ ) {
+      a = new int[10];
+      for ( int j = 0; j < 10; j++ ) {
+        a[j] = j*i;
+      }
+
+      map.put(a, (short)i);
+    }
+
+    for ( int i = 0; i < 100; i++ ) {
+      a = new int[10];
+      for ( int j = 0; j < 10; j++ ) {
+        a[j] = j*i;
+      }
+
+      assertThat(map.get(a), is(equalTo((short)i)));
+    }
+
+    map.close();
+
+    map = new HDBLRUMap<int[], Short>(f, int[].class, Short.class, 10, 10, true);
+    map.load();
+
+    for ( int i = 1; i < 100; i++ ) {
+      a = new int[10];
+      for ( int j = 0; j < 10; j++ ) {
+        a[j] = j*i;
+      }
+
+      assertThat(map.get(a), is(equalTo((short)i)));
+    }
+
+
+  }
   @Test
   public void reader() throws Exception {
     File f;
