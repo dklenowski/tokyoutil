@@ -6,7 +6,7 @@
   <packaging>jar</packaging>
   <version>1.0</version>
   <name>tokyoutil</name>
-  <description>Tokyo Cabinet for Orbious.</description>
+  <description>Tokyo Cabinet Utilities.</description>
   <url>https://github.com/dklenowski/tokyoutil</url>
   <dependencies>
     <dependency>
