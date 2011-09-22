@@ -47,6 +47,14 @@ public abstract class Storage {
     return filestore.exists();
   }
 
+  public boolean isopen() {
+    if ( dbm != null ) {
+      return true;
+    }
+
+    return false;
+  }
+
   public boolean readOnly() {
     return readOnly;
   }
@@ -440,5 +448,37 @@ public abstract class Storage {
     }
 
     return Bytes.bytesToDouble(bval);
+  }
+
+  public void write(Object key, Object value) throws StorageException {
+    byte[] bkey;
+    byte[] bval;
+    byte[] orig;
+
+    bkey = Bytes.serialize(key);
+    bval = Bytes.serialize(value);
+
+    orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+      return;
+    }
+
+    if ( !dbm.put(bkey, bval) ) {
+      throw new StorageException("Failed to write key " + key + " to " +
+          filestore.toString(), ecode(), errmsg());
+    }
+  }
+
+  public Object readObject(Object key) {
+    byte[] bkey;
+    byte[] bval;
+
+    bkey = Bytes.serialize(key);
+    bval = dbm.get(bkey);
+    if ( bval == null ) {
+      return -1;
+    }
+
+    return Bytes.deserialize(bval);
   }
 }
