@@ -4,7 +4,11 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Vector;
+
+import org.apache.log4j.Logger;
+
 import com.orbious.util.Bytes;
+import com.orbious.util.Loggers;
 import tokyocabinet.DBM;
 import tokyocabinet.FDB;
 import tokyocabinet.HDB;
@@ -16,6 +20,7 @@ public abstract class Storage {
   protected final int tokyoSize;
   protected final boolean readOnly;
   protected DBM dbm;
+  protected Logger logger;
 
   public abstract void write(int key, Object obj) throws StorageException;
   public abstract Object readObject(int key);
@@ -34,6 +39,7 @@ public abstract class Storage {
     this.filestore = filestore;
     this.tokyoSize = tokyoSize;
     this.readOnly = readOnly;
+    logger = Loggers.logger();
   }
 
   public Storage(String filename, int tokyoSize, boolean readOnly) {
@@ -53,6 +59,10 @@ public abstract class Storage {
     }
 
     return false;
+  }
+
+  public long fsiz() {
+    return dbm.fsiz();
   }
 
   public boolean readOnly() {
