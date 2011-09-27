@@ -9,11 +9,11 @@ import tokyocabinet.Util;
 public class FDBStorage extends Storage {
 
   public FDBStorage(File filestore, boolean readOnly) {
-    super(filestore, -1, readOnly);
+    super(filestore, FDB.class, -1, readOnly);
   }
 
   public void open() throws StorageException {
-    super.open(FDB.class);
+    super.open();
   }
 
   public static String read(File file, String key) throws StorageException {
@@ -43,7 +43,7 @@ public class FDBStorage extends Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -69,7 +69,7 @@ public class FDBStorage extends Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -95,7 +95,7 @@ public class FDBStorage extends Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -121,7 +121,7 @@ public class FDBStorage extends Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -158,7 +158,7 @@ public class FDBStorage extends Storage {
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -195,7 +195,7 @@ public class FDBStorage extends Storage {
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 

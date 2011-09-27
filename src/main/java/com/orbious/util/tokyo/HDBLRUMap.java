@@ -56,7 +56,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
       return;
     }
 
-    hdbs.vanish();
+    hdbs.clear();
   }
 
   public void close() throws HDBLRUMapException {

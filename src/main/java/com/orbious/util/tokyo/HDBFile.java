@@ -4,7 +4,7 @@ import java.io.File;
 import com.orbious.util.config.Config;
 import com.orbious.util.config.ConfigException;
 
-public class HDBFile extends HDBStorage implements FileStorage {
+public class HDBFile extends HDBStorage implements IFileStorage {
 
   public HDBFile(File filestore, int tokyoSize, boolean readOnly) {
     super(filestore, tokyoSize, readOnly);

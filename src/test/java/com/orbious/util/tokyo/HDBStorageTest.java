@@ -13,11 +13,11 @@ import com.orbious.util.Bytes;
 public class HDBStorageTest {
 
   private void createTmpTokyoFile(File f) {
-    HDB hdbs;
-    hdbs = new HDB();
-    hdbs.open(f.toString(), HDB.OWRITER | HDB.OCREAT);
-    hdbs.put(Bytes.intToBytes(10), Bytes.intToBytes(100));
-    hdbs.close();
+    HDB hdb;
+    hdb = new HDB();
+    hdb.open(f.toString(), HDB.OWRITER | HDB.OCREAT);
+    hdb.put(Bytes.intToBytes(10), Bytes.intToBytes(100));
+    hdb.close();
   }
 
 	@Test

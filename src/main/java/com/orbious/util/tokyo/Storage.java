@@ -14,9 +14,10 @@ import tokyocabinet.FDB;
 import tokyocabinet.HDB;
 import tokyocabinet.Util;
 
-public abstract class Storage {
+public abstract class Storage implements IStorage {
 
   protected final File filestore;
+  protected final Class<?> filetype;
   protected final int tokyoSize;
   protected final boolean readOnly;
   protected DBM dbm;
@@ -35,15 +36,16 @@ public abstract class Storage {
   public abstract void write(double key, Object obj) throws StorageException;
   public abstract Object readObject(double key);
 
-  public Storage(File filestore, int tokyoSize, boolean readOnly) {
+  public Storage(File filestore, Class<?> filetype, int tokyoSize, boolean readOnly) {
     this.filestore = filestore;
+    this.filetype = filetype;
     this.tokyoSize = tokyoSize;
     this.readOnly = readOnly;
     logger = Loggers.logger();
   }
 
-  public Storage(String filename, int tokyoSize, boolean readOnly) {
-    this(new File(filename), tokyoSize, readOnly);
+  public Storage(String filename, Class<?> filetype, int tokyoSize, boolean readOnly) {
+    this(new File(filename), filetype, tokyoSize, readOnly);
   }
 
   public boolean exists() {
@@ -61,15 +63,11 @@ public abstract class Storage {
     return false;
   }
 
-  public long fsiz() {
-    return dbm.fsiz();
-  }
-
   public boolean readOnly() {
     return readOnly;
   }
 
-  public String filename() {
+  public String path() {
     return filestore.toString();
   }
 
@@ -85,7 +83,19 @@ public abstract class Storage {
     return dbm.iternext();
   }
 
-  public void vanish() {
+  public void open() throws StorageException {
+    try {
+      dbm = Helper.open(filestore, filetype, tokyoSize, readOnly);
+    } catch ( HelperException he ) {
+      throw new StorageException("Error opening " + filestore.toString(), he);
+    }
+  }
+
+  public long size() {
+    return dbm.fsiz();
+  }
+
+  public void clear() {
     if ( dbm == null ) {
       return;
     }
@@ -100,99 +110,28 @@ public abstract class Storage {
     }
   }
 
-  protected void open(Class<?> clazz) throws StorageException {
-    if ( clazz == HDB.class ) {
-      dbm = openhdb(filestore, tokyoSize, readOnly);
-    } else if ( clazz == FDB.class ) {
-      dbm = openfdb(filestore, readOnly);
-    } else {
-      throw new UnsupportedOperationException(
-          "Unsupported storage type for tokyo storage");
-    }
-  }
-
-  public static HDB openhdb(File file, int size, boolean read)
-      throws StorageException {
-    HDB hdb = new HDB();
-    if ( size != -1 ) {
-      hdb.setcache(size);
-    }
-
-    int mode;
-    if ( read ) {
-      mode = HDB.OREADER | HDB.ONOLCK;
-    } else {
-      mode = HDB.OWRITER | HDB.OCREAT;
-    }
-
-    if ( !hdb.open(file.toString(), mode) ) {
-      throw new StorageException("Failed to initialize hdb storage " +
-          file.toString(), hdb.ecode(), HDB.errmsg(hdb.ecode()));
-    }
-
-    return hdb;
-  }
-
-  public static FDB openfdb(File file, boolean read) throws StorageException {
-    FDB fdb;
-    int mode;
-
-    fdb = new FDB();
-
-    if ( read ) {
-      mode = FDB.OREADER | FDB.ONOLCK;
-    } else {
-      mode = FDB.OWRITER | FDB.OCREAT;
-    }
-
-    if ( !fdb.open(file.toString(), mode) ) {
-      throw new StorageException("Failed to initialize fdb storage " +
-          file.toString(), fdb.ecode(), FDB.errmsg(fdb.ecode()));
-    }
-
-    return fdb;
-  }
-
   public void close() throws StorageException {
     if ( dbm == null ) {
       return;
     }
 
-    boolean error = false;
-
-    if ( dbm instanceof HDB ) {
-      if ( !((HDB)dbm).close() ) {
-        error = true;
-      }
-    } else if ( dbm instanceof FDB ) {
-      if ( !((FDB)dbm).close() ) {
-        error = true;
-      }
-    } else {
-      throw new UnsupportedOperationException(
-          "Unsupported storage type for tokyo storage");
-    }
-
-    dbm = null;
-
-    if ( error ) {
-      throw new StorageException("Failed to close tokyo storage " +
-          filestore.toString(), ecode(), errmsg());
+    try {
+      Helper.close(dbm);
+      dbm = null;
+    } catch ( HelperException he ) {
+      throw new StorageException("Error closing " + filestore.toString(), he);
     }
   }
 
   // for one off stuff, e.g. to read specific keys from files ..
-  protected static String read(File file, Class<?> fileclazz, String key)
+  protected static String read(File file, Class<?> filetype, String key)
       throws StorageException {
     DBM dbm;
 
-    if ( fileclazz == HDB.class ) {
-      dbm = openhdb(file, -1, true);
-    } else if ( fileclazz == FDB.class ) {
-      dbm = openfdb(file, true);
-    } else {
-      throw new UnsupportedOperationException(
-          "Unsupported storage type for tokyo storage");
+    try {
+      dbm = Helper.open(file, filetype, -1, true);
+    } catch ( HelperException he ) {
+      throw new StorageException("Error opening " + file.toString(), he);
     }
 
     byte[] bkey;
@@ -205,27 +144,13 @@ public abstract class Storage {
       return null;
     }
 
+    try {
+      Helper.close(dbm);
+    } catch ( HelperException he ) {
+      throw new StorageException("Error closing " + file.toString(), he);
+    }
+
     return Bytes.bytesToStr(bval);
-  }
-
-  protected int ecode() {
-    if ( dbm instanceof HDB ) {
-      return ((HDB)dbm).ecode();
-    } else if ( dbm instanceof FDB ) {
-      return ((FDB)dbm).ecode();
-    }
-
-    return -1;
-  }
-
-  protected String errmsg() {
-    if ( dbm instanceof HDB ) {
-      return ((HDB)dbm).errmsg();
-    } else if ( dbm instanceof FDB ) {
-      return ((FDB)dbm).errmsg();
-    }
-
-    return "";
   }
 
 
@@ -236,7 +161,7 @@ public abstract class Storage {
   public void write(byte[] key, byte[] val) throws StorageException {
     if ( !dbm.put(key, val) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -327,7 +252,7 @@ public abstract class Storage {
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -347,7 +272,7 @@ public abstract class Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -379,7 +304,7 @@ public abstract class Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -411,7 +336,7 @@ public abstract class Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -443,7 +368,7 @@ public abstract class Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -475,7 +400,7 @@ public abstract class Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 

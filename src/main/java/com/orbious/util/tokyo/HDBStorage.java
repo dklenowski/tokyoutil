@@ -4,16 +4,11 @@ import java.io.File;
 import java.util.Arrays;
 import com.orbious.util.Bytes;
 import tokyocabinet.HDB;
-import tokyocabinet.Util;
 
 public class HDBStorage extends Storage {
 
   public HDBStorage(File filestore, int tokyoSize, boolean readOnly) {
-    super(filestore, tokyoSize, readOnly);
-  }
-
-  public void open() throws StorageException {
-    super.open(HDB.class);
+    super(filestore, HDB.class, tokyoSize, readOnly);
   }
 
   public static String read(File file, String key) throws StorageException {
@@ -34,7 +29,7 @@ public class HDBStorage extends Storage {
     if ( obj instanceof byte[] ) {
       bval = (byte[])obj;
     } else {
-      bval = Util.serialize(obj);
+      bval = Bytes.serialize(obj);
     }
 
     orig = dbm.get(bkey);
@@ -44,7 +39,7 @@ public class HDBStorage extends Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -58,7 +53,7 @@ public class HDBStorage extends Storage {
       return null;
     }
 
-    return Util.deserialize(bval);
+    return Bytes.deserialize(bval);
   }
 
   public void write(int key, int val) throws StorageException {
@@ -70,7 +65,7 @@ public class HDBStorage extends Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -96,7 +91,7 @@ public class HDBStorage extends Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -122,7 +117,7 @@ public class HDBStorage extends Storage {
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -149,7 +144,7 @@ public class HDBStorage extends Storage {
     if ( obj instanceof byte[] ) {
       bval = (byte[])obj;
     } else {
-      bval = Util.serialize(obj);
+      bval = Bytes.serialize(obj);
     }
 
     orig = dbm.get(bkey);
@@ -159,7 +154,7 @@ public class HDBStorage extends Storage {
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -173,7 +168,7 @@ public class HDBStorage extends Storage {
       return null;
     }
 
-    return Util.deserialize(bval);
+    return Bytes.deserialize(bval);
   }
 
   // double keys
@@ -186,7 +181,7 @@ public class HDBStorage extends Storage {
     if ( obj instanceof byte[] ) {
       bval = (byte[])obj;
     } else {
-      bval = Util.serialize(obj);
+      bval = Bytes.serialize(obj);
     }
 
     orig = dbm.get(bkey);
@@ -196,7 +191,7 @@ public class HDBStorage extends Storage {
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
-          filestore.toString(), ecode(), errmsg());
+          filestore.toString(), Helper.ecode(dbm), Helper.errmsg(dbm));
     }
   }
 
@@ -210,6 +205,6 @@ public class HDBStorage extends Storage {
       return null;
     }
 
-    return Util.deserialize(bval);
+    return Bytes.deserialize(bval);
   }
 }

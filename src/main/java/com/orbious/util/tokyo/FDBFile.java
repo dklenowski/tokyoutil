@@ -5,7 +5,7 @@ import java.io.File;
 import com.orbious.util.Bytes;
 import com.orbious.util.config.Config;
 
-public class FDBFile extends FDBStorage implements FileStorage {
+public class FDBFile extends FDBStorage implements IFileStorage {
 
   private int index;
 
@@ -99,6 +99,7 @@ public class FDBFile extends FDBStorage implements FileStorage {
   public int getInt(int idx) {
     return readInt( Integer.toString(idx) );
   }
+
   public int put(long value) throws StorageException {
     int idx;
     idx = index++;
