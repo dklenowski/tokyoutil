@@ -31,7 +31,7 @@ public class HDBMemStorageTest {
 	  Integer actual;
 
 	  f = File.createTempFile("HDBMemStorageTest", ".hdb");
-	  hdbm = new HDBMemStorage<String, Integer>(f, String.class, Integer.class);
+	  hdbm = new HDBMemStorage<String, Integer>(f, String.class, Integer.class, false);
 
 	  hdbm.open();
 	  for ( int i = 0; i < 10; i++ ) {

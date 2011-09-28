@@ -9,7 +9,8 @@ import org.junit.runners.Suite.SuiteClasses;
   FDBFileTest.class,
   HDBFileTest.class,
   HDBLRUMapTest.class,
-  HDBStorageTest.class
+  HDBStorageTest.class,
+  HDBMemStorageTest.class
 })
 
 public class AllTokyoTests {

@@ -17,23 +17,25 @@ public abstract class MemStorage<K, V> implements IStorage {
   protected final Class<?> filetype;
   protected final Class<K> keytype;
   protected final Class<V> valuetype;
+  protected final boolean readOnly;
   protected HashMap<K, V> map;
   protected DBM dbm;
   protected Logger logger;
 
   public MemStorage(File filestore, Class<?> filetype, Class<K> keytype,
-      Class<V> valuetype) {
+      Class<V> valuetype, boolean readOnly) {
     this.filestore = filestore;
     this.filetype = filetype;
     this.keytype = keytype;
     this.valuetype = valuetype;
+    this.readOnly = readOnly;
     this.map = new HashMap<K,V>();
     logger = Loggers.logger();
   }
 
   public MemStorage(String filename, Class<?> filetype, Class<K> keytype,
-      Class<V> valuetype) {
-    this(new File(filename), filetype, keytype, valuetype);
+      Class<V> valuetype, boolean readOnly) {
+    this(new File(filename), filetype, keytype, valuetype, readOnly);
   }
 
   public boolean exists() {
@@ -49,7 +51,7 @@ public abstract class MemStorage<K, V> implements IStorage {
   }
 
   public boolean readOnly() {
-    return false;
+    return readOnly;
   }
 
   public String path() {

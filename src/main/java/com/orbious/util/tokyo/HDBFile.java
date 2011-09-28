@@ -17,6 +17,11 @@ public class HDBFile extends HDBStorage implements IFileStorage {
   public void writecfg() throws StorageException {
     String xmlstr;
 
+    if ( readOnly ) {
+      throw new StorageException("Cannot write config to a readOnly filestore " +
+          filestore.toString());
+    }
+
     xmlstr = null;
     try {
       xmlstr = Config.xmlstr();

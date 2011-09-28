@@ -10,8 +10,9 @@ import tokyocabinet.HDB;
 
 public class HDBMemStorage<K, V> extends MemStorage<K, V> implements IFileStorage {
 
-  public HDBMemStorage(File filestore, Class<K> keytype, Class<V> valuetype) {
-    super(filestore, HDB.class, keytype, valuetype);
+  public HDBMemStorage(File filestore, Class<K> keytype, Class<V> valuetype,
+      boolean readOnly) {
+    super(filestore, HDB.class, keytype, valuetype, readOnly);
   }
 
   /*
@@ -20,6 +21,11 @@ public class HDBMemStorage<K, V> extends MemStorage<K, V> implements IFileStorag
 
   public void writecfg() throws StorageException {
     String xmlstr;
+
+    if ( readOnly ) {
+      throw new StorageException("Cannot write config to a readOnly filestore " +
+          filestore.toString());
+    }
 
     xmlstr = null;
     try {
@@ -33,11 +39,21 @@ public class HDBMemStorage<K, V> extends MemStorage<K, V> implements IFileStorag
 
   @Override
   public void close() throws StorageException {
-    if ( dbm == null ) {
-      System.out.println("DBM is null in CLOSE");
+    StorageException e = null;
+
+    if ( !readOnly ) {
+      try {
+        writecfg();
+      } catch ( StorageException se ) {
+        e = se;
+      }
     }
-    writecfg();
+
     super.close();
+
+    if ( e != null ) {
+      throw e;
+    }
   }
 
   public String cfgstr() {
