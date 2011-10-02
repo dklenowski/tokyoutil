@@ -5,6 +5,7 @@ import java.io.File;
 import com.orbious.util.Bytes;
 import com.orbious.util.config.Config;
 import com.orbious.util.config.ConfigException;
+import com.orbious.util.config.IConfig;
 
 import tokyocabinet.HDB;
 
@@ -13,6 +14,17 @@ public class HDBMemStorage<K, V> extends MemStorage<K, V> implements IFileStorag
   public HDBMemStorage(File filestore, Class<K> keytype, Class<V> valuetype,
       boolean readOnly) {
     super(filestore, HDB.class, keytype, valuetype, readOnly);
+  }
+
+  public String cfg(IConfig key) {
+    String cfgstr;
+
+    cfgstr = cfgstr();
+    if ( cfgstr == null ) {
+      return null;
+    }
+
+    return Config.get(cfgstr, key);
   }
 
   /*

@@ -4,6 +4,7 @@ import java.io.File;
 
 import com.orbious.util.Bytes;
 import com.orbious.util.config.Config;
+import com.orbious.util.config.IConfig;
 
 public class FDBFile extends FDBStorage implements IFileStorage {
 
@@ -20,6 +21,17 @@ public class FDBFile extends FDBStorage implements IFileStorage {
   /*
    * Interface methods.
    */
+  public String cfg(IConfig key) {
+    String cfgstr;
+
+    cfgstr = cfgstr();
+    if ( cfgstr == null ) {
+      return null;
+    }
+
+    return Config.get(cfgstr, key);
+  }
+
   @Override
   public void open() throws StorageException {
     super.open();

@@ -3,6 +3,7 @@ package com.orbious.util.tokyo;
 import java.io.File;
 import com.orbious.util.config.Config;
 import com.orbious.util.config.ConfigException;
+import com.orbious.util.config.IConfig;
 
 public class HDBFile extends HDBStorage implements IFileStorage {
 
@@ -13,6 +14,17 @@ public class HDBFile extends HDBStorage implements IFileStorage {
   /*
    * Interface methods.
    */
+
+  public String cfg(IConfig key) {
+    String cfgstr;
+
+    cfgstr = cfgstr();
+    if ( cfgstr == null ) {
+      return null;
+    }
+
+    return Config.get(cfgstr, key);
+  }
 
   public void writecfg() throws StorageException {
     String xmlstr;

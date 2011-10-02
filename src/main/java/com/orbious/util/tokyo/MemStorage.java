@@ -62,6 +62,10 @@ public abstract class MemStorage<K, V> implements IStorage {
     byte[] key;
     byte[] cfgkey;
 
+    if ( readOnly && !filestore.exists() ) {
+      throw new StorageException("File does not exist, cannot open readOnly?");
+    }
+
     try {
       dbm = Helper.open(filestore, filetype, -1, false);
     } catch ( HelperException he ) {
@@ -80,6 +84,10 @@ public abstract class MemStorage<K, V> implements IStorage {
     }
   }
 
+  public Iterator<K> iterator() {
+    return map.keySet().iterator();
+  }
+
   public long size() {
     return map.size();
   }
@@ -92,10 +100,12 @@ public abstract class MemStorage<K, V> implements IStorage {
     Iterator<K> iter;
     K key;
 
-    iter = map.keySet().iterator();
-    while ( iter.hasNext() ) {
-      key = iter.next();
-      dbm.put(Bytes.serialize(key), Bytes.serialize(map.get(key)));
+    if ( !readOnly ) {
+      iter = map.keySet().iterator();
+      while ( iter.hasNext() ) {
+        key = iter.next();
+        dbm.put(Bytes.serialize(key), Bytes.serialize(map.get(key)));
+      }
     }
 
     try {
