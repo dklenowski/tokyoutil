@@ -181,7 +181,11 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
     }
 
     while ( (bkey = hdbs.iternext()) != null ) {
-      key = kclazz.cast(bkey);
+      try {
+        key = kclazz.cast( Bytes.convert(bkey, kclazz) );
+      } catch ( UnsupportedEncodingException uee ) {
+        throw new HDBLRUMapException("Error casting key to " + kclazz, uee);
+      }
       if ( !this.containsKey(key) ) {
         keys.add(key);
       }
