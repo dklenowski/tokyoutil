@@ -6,6 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+  DBFieldsTest.class,
   FDBFileTest.class,
   HDBFileTest.class,
   HDBLRUMapTest.class,

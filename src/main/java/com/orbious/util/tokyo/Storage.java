@@ -21,7 +21,11 @@ public abstract class Storage implements IStorage {
   protected final int tokyoSize;
   protected final boolean readOnly;
   protected DBM dbm;
+  protected DBFields fields;
   protected Logger logger;
+
+  public abstract void setDefaultFields();
+  public abstract void updateFields();
 
   public abstract void write(int key, Object obj) throws StorageException;
   public abstract Object readObject(int key);
@@ -42,6 +46,9 @@ public abstract class Storage implements IStorage {
     this.tokyoSize = tokyoSize;
     this.readOnly = readOnly;
     logger = Loggers.logger();
+
+    this.fields = new DBFields();
+    setDefaultFields();
   }
 
   public Storage(String filename, Class<?> filetype, int tokyoSize, boolean readOnly) {
@@ -89,6 +96,18 @@ public abstract class Storage implements IStorage {
     } catch ( HelperException he ) {
       throw new StorageException("Error opening " + filestore.toString(), he);
     }
+  }
+
+  public void setField(String key) {
+    fields.set(key);
+  }
+
+  public void setField(String key, String value) {
+    fields.set(key, value);
+  }
+
+  public String getField(String key) {
+    return fields.get(key);
   }
 
   public long size() {

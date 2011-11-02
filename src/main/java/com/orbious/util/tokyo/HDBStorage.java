@@ -3,6 +3,8 @@ package com.orbious.util.tokyo;
 import java.io.File;
 import java.util.Arrays;
 import com.orbious.util.Bytes;
+import com.orbious.util.config.Config;
+
 import tokyocabinet.HDB;
 
 public class HDBStorage extends Storage {
@@ -15,9 +17,12 @@ public class HDBStorage extends Storage {
     return Storage.read(file, HDB.class, key);
   }
 
-  /*
-   * Abstract methods.
-   */
+  // these should be overridden.
+  public void setDefaultFields() {
+    fields.set(Config.config_hdb_key);
+  }
+
+  public void updateFields() { }
 
   // int keys
   public void write(int key, Object obj) throws StorageException {

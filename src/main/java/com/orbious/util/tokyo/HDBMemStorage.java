@@ -16,6 +16,13 @@ public class HDBMemStorage<K, V> extends MemStorage<K, V> implements IFileStorag
     super(filestore, HDB.class, keytype, valuetype, readOnly);
   }
 
+  public void setDefaultFields() {
+    logger.info("Setting default field " +  Config.config_hdb_key);
+    fields.set(Config.config_hdb_key);
+  }
+
+  public void updateFields() { }
+
   public String cfg(IConfig key) {
     String cfgstr;
 
@@ -32,21 +39,16 @@ public class HDBMemStorage<K, V> extends MemStorage<K, V> implements IFileStorag
    */
 
   public void writecfg() throws StorageException {
-    String xmlstr;
-
     if ( readOnly ) {
       throw new StorageException("Cannot write config to a readOnly filestore " +
           filestore.toString());
     }
 
-    xmlstr = null;
     try {
-      xmlstr = Config.xmlstr();
+      fields.set(Config.config_hdb_key, Config.xmlstr());
     } catch ( ConfigException ce ) {
-      throw new StorageException("Failed to extract xml config", ce);
+      throw new StorageException("Failed to set config " + Config.config_hdb_key, ce);
     }
-
-    dbm.put(Bytes.serialize(Config.config_hdb_key), Bytes.serialize(xmlstr));
   }
 
   @Override
@@ -69,9 +71,6 @@ public class HDBMemStorage<K, V> extends MemStorage<K, V> implements IFileStorag
   }
 
   public String cfgstr() {
-    byte[] value;
-
-    value = dbm.get(Bytes.serialize(Config.config_hdb_key));
-    return (String)Bytes.deserialize(value);
+    return fields.get(Config.config_hdb_key);
   }
 }

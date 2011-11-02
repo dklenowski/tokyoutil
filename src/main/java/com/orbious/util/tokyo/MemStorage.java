@@ -1,13 +1,12 @@
 package com.orbious.util.tokyo;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import org.apache.log4j.Logger;
 import com.orbious.util.Bytes;
 import com.orbious.util.Loggers;
-import com.orbious.util.config.Config;
+import com.orbious.util.tokyo.DBFields.KeyBytes;
 
 import tokyocabinet.DBM;
 
@@ -20,7 +19,11 @@ public abstract class MemStorage<K, V> implements IStorage {
   protected final boolean readOnly;
   protected HashMap<K, V> map;
   protected DBM dbm;
+  protected DBFields fields;
   protected Logger logger;
+
+  public abstract void setDefaultFields();
+  public abstract void updateFields();
 
   public MemStorage(File filestore, Class<?> filetype, Class<K> keytype,
       Class<V> valuetype, boolean readOnly) {
@@ -30,7 +33,10 @@ public abstract class MemStorage<K, V> implements IStorage {
     this.valuetype = valuetype;
     this.readOnly = readOnly;
     this.map = new HashMap<K,V>();
-    logger = Loggers.logger();
+    this.logger = Loggers.logger();
+
+    this.fields = new DBFields();
+    setDefaultFields();
   }
 
   public MemStorage(String filename, Class<?> filetype, Class<K> keytype,
@@ -60,8 +66,6 @@ public abstract class MemStorage<K, V> implements IStorage {
 
   public void open() throws StorageException {
     byte[] key;
-    byte[] cfgkey;
-    boolean fndkey;
 
     if ( readOnly && !filestore.exists() ) {
       throw new StorageException("File does not exist, cannot open readOnly?");
@@ -73,24 +77,34 @@ public abstract class MemStorage<K, V> implements IStorage {
       throw new StorageException("Failed to open " + filestore.toString(), he);
     }
 
-    cfgkey = Bytes.serialize(Config.config_hdb_key);
-    fndkey = false;
-
     dbm.iterinit();
     while ( (key = dbm.iternext()) != null ) {
-      if ( !fndkey && Arrays.equals(key, cfgkey) ) {
-        fndkey = true;
+      if ( fields.contains(key) ) {
+        fields.set(key, dbm.get(key));
         continue;
       }
       map.put(keytype.cast(Bytes.deserialize(key)),
           valuetype.cast(Bytes.deserialize(dbm.get(key))));
     }
 
+    updateFields();
     logger.info("Loaded " + map.size() + " keys from " + filestore.toString());
   }
 
   public Iterator<K> iterator() {
     return map.keySet().iterator();
+  }
+
+  public void setField(String key) {
+    fields.set(key);
+  }
+
+  public void setField(String key, String value) {
+    fields.set(key, value);
+  }
+
+  public String getField(String key) {
+    return fields.get(key);
   }
 
   public long size() {
@@ -102,14 +116,25 @@ public abstract class MemStorage<K, V> implements IStorage {
   }
 
   public void close() throws StorageException {
-    Iterator<K> iter;
+    Iterator<K> it;
     K key;
+    HashMap<KeyBytes, byte[]> entries;
+    Iterator<KeyBytes> it2;
+    KeyBytes kb;
 
     if ( !readOnly ) {
-      iter = map.keySet().iterator();
-      while ( iter.hasNext() ) {
-        key = iter.next();
+      it = map.keySet().iterator();
+      while ( it.hasNext() ) {
+        key = it.next();
         dbm.put(Bytes.serialize(key), Bytes.serialize(map.get(key)));
+      }
+
+
+      entries = fields.entries();
+      it2 = entries.keySet().iterator();
+      while ( it2.hasNext() ) {
+        kb = it2.next();
+        dbm.put(kb.buffer(), entries.get(kb));
       }
     }
 

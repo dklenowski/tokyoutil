@@ -3,6 +3,8 @@ package com.orbious.util.tokyo;
 import java.io.File;
 import java.util.Arrays;
 import com.orbious.util.Bytes;
+import com.orbious.util.config.Config;
+
 import tokyocabinet.FDB;
 import tokyocabinet.Util;
 
@@ -12,6 +14,13 @@ public class FDBStorage extends Storage {
     super(filestore, FDB.class, -1, readOnly);
   }
 
+  // these should be overridden.
+  public void setDefaultFields() {
+    fields.set(Config.config_fdb_idx);
+  }
+
+  public void updateFields() { }
+
   public void open() throws StorageException {
     super.open();
   }
@@ -19,10 +28,6 @@ public class FDBStorage extends Storage {
   public static String read(File file, String key) throws StorageException {
     return Storage.read(file, FDB.class, key);
   }
-
-  /*
-   * Abstract methods.
-   */
 
   public void write(int key, Object obj) throws StorageException {
     byte[] bkey;
