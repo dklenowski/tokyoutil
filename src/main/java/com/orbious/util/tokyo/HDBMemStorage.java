@@ -2,7 +2,6 @@ package com.orbious.util.tokyo;
 
 import java.io.File;
 
-import com.orbious.util.Bytes;
 import com.orbious.util.config.Config;
 import com.orbious.util.config.ConfigException;
 import com.orbious.util.config.IConfig;
