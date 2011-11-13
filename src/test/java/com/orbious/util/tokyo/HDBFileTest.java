@@ -93,6 +93,7 @@ public class HDBFileTest {
 
 	    private String svalue = null;
 	    private int ivalue = -1;
+	    private float fvalue = Float.NaN;
 	    private double dvalue = Double.NaN;
 	    private boolean bvalue = false;
 
@@ -106,6 +107,9 @@ public class HDBFileTest {
 
 	    public boolean isInt() { return (ivalue != -1) ? true : false; }
 	    public int asInt() { return ivalue; }
+
+	    public boolean isFloat() { return (fvalue != Float.NaN) ? true : false; }
+	    public float asFloat() { return fvalue; }
 
 	    public boolean isDouble() { return (dvalue != Double.NaN) ? true : false; }
 	    public double asDouble() { return dvalue; }
