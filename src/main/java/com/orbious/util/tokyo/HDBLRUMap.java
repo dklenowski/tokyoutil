@@ -3,6 +3,7 @@ package com.orbious.util.tokyo;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.apache.commons.collections15.map.AbstractLinkedMap;
 import org.apache.commons.collections15.map.LRUMap;
@@ -51,102 +52,80 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
     }
   }
 
+  public String filename() {
+    return filestore.toString();
+  }
+
   @Override
   public void clear() {
     super.clear();
-    if ( readOnly ) {
-      return;
-    }
-
+    if ( readOnly ) return;
     hdbs.clear();
   }
 
   public void close() throws HDBLRUMapException {
-    if ( hdbs == null ) {
-      return;
-    }
+    if ( hdbs == null ) return;
 
     logger.info("Closing " + filestore.toString());
 
-    boolean error = false;
-    if ( !readOnly ) {
-      error = closeWrite();
-    }
+    if ( !readOnly )
+      closewrite();
 
     try {
       hdbs.close();
     } catch ( StorageException se ) {
-      error = true;
-      logger.fatal("Failed to close " + filestore.toString(), se);
-
-    }
-
-    if ( error ) {
       throw new HDBLRUMapException("Error closing " + filestore.toString() +
-          ", please check the error log for more details.");
+          ", please check the error log for more details.", se);
     }
   }
 
-  private boolean closeWrite() {
-    if ( readOnly ) {
-      return false;
-    }
+  private void closewrite() {
+    if ( readOnly ) return;
 
-    boolean error;
-    error = false;
-
-    Object[] keys;
-    K key;
-    V value;
-
-    keys  = this.keySet().toArray();
+    Object[] keys = this.keySet().toArray();
     logger.info("Writing " + keys.length + " keys in memory");
 
+    K key;
     for ( int i = 0; i < keys.length; i++ ) {
       key = kclazz.cast(keys[i]);
-      value = this.get(key);
-
-      if ( logger.isDebugEnabled() ) {
-        logger.debug("Writing key=" + key.toString() + " to " + filestore.getName());
-      }
-      write(key, value);
+      write(key, this.get(key));
     }
+  }
 
-    return error;
+  // the following 2 methods are used to store configuration info ..
+  // write config info
+  public void writecfg(String key, String value) throws HDBLRUMapException {
+    if ( readOnly ) return;
+
+    try {
+      hdbs.write( Bytes.strToBytes(key), Bytes.strToBytes(value) );
+    } catch ( StorageException se ) {
+      throw new HDBLRUMapException("Failed to write cfg key (" +
+          key + ") with value (" + value + ")", se);
+    }
+  }
+
+  // read config info
+  public String readcfg(String key) {
+    byte[] bval = hdbs.read(Bytes.strToBytes(key));
+    if ( bval == null )
+      return null;
+    return Bytes.bytesToStr(bval);
   }
 
   @Override
   public V get(Object key) {
-    if ( this.containsKey(key) ) {
-      if ( logger.isDebugEnabled() ) {
-        logger.debug("Cache hit for key '" + key.toString() + "' in " +
-            filestore.getName());
-      }
-
+    if ( this.containsKey(key) )
       return super.get(key);
-    }
-
-    if ( logger.isDebugEnabled() ) {
-      logger.debug("Cache miss for key '" + key.toString() + "' in " +
-          filestore.getName());
-    }
-
     return read( kclazz.cast(key) );
   }
 
   private V read(K key) {
-    byte[] bkey;
-    byte[] bval;
+    byte[] bkey = Bytes.convert(key, kclazz);
+    byte[] bval = hdbs.read(bkey);
 
-    bkey = Bytes.convert(key, kclazz);
-    bval = hdbs.read(bkey);
-
-    if ( bval == null ) {
-      if ( logger.isDebugEnabled() ) {
-        logger.debug("Failed to find value for key '" + key.toString() + "'");
-      }
+    if ( bval == null )
       return null;
-    }
 
     V val = null;
     try {
@@ -161,41 +140,128 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
   }
 
   private void write(K key, V value)  {
-    if ( readOnly ) {
-      return;
-    }
-
+    if ( readOnly ) return;
     hdbs.write(key, kclazz, value, vclazz);
   }
 
-  public ArrayList<K> keys() throws HDBLRUMapException {
-    ArrayList<K> keys;
-    byte[] bkey;
-    K key;
+  // TODO
+  // removed the uue exception code, since we are writing String key/value
+  // configuration pairs.
+  // need to implement something like DBFields.
 
-    keys = new ArrayList<K>();
+  public ArrayList<K> keys(String[] keystoskip) throws HDBLRUMapException {
     try {
       hdbs.iterinit();
     } catch ( StorageException se ) {
       throw new HDBLRUMapException("Error initializing iterator for key retreival", se);
     }
 
+    ArrayList<K> keys = new ArrayList<K>();
+    byte[][] skip = new byte[keystoskip.length][];
+
+    for ( int i = 0; i < keystoskip.length; i++ ) {
+      skip[i] = Bytes.strToBytes(keystoskip[i]);
+    }
+
+    byte[] bkey;
+    K key;
     while ( (bkey = hdbs.iternext()) != null ) {
       try {
+        for ( int i = 0; i < skip.length; i++ ) {
+          if ( Arrays.equals(bkey, skip[i]) ) {
+            bkey = null;
+            break;
+          }
+        }
+
+        if ( bkey == null )
+          continue;
+
         key = kclazz.cast( Bytes.convert(bkey, kclazz) );
+        if ( !this.containsKey(key) ) keys.add(key);
       } catch ( UnsupportedEncodingException uee ) {
-        throw new HDBLRUMapException("Error casting key to " + kclazz, uee);
-      }
-      if ( !this.containsKey(key) ) {
-        keys.add(key);
+        logger.warn("Error casting key to " + kclazz, uee);
       }
     }
 
     // add everything in memory
-    Object[] memkeys;
-    memkeys = this.keySet().toArray();
-    for ( int i = 0; i < memkeys.length; i++ ) {
+    Object[] memkeys = this.keySet().toArray();
+    for ( int i = 0; i < memkeys.length; i++ )
       keys.add(kclazz.cast(memkeys[i]));
+
+    return keys;
+  }
+
+  // faster
+  public ArrayList<K> keys() throws HDBLRUMapException {
+    try {
+      hdbs.iterinit();
+    } catch ( StorageException se ) {
+      throw new HDBLRUMapException("Error initializing iterator for key retreival", se);
+    }
+
+    ArrayList<K> keys = new ArrayList<K>();
+
+    byte[] bkey;
+    K key;
+    while ( (bkey = hdbs.iternext()) != null ) {
+      try {
+        key = kclazz.cast( Bytes.convert(bkey, kclazz) );
+        if ( !this.containsKey(key) ) keys.add(key);
+      } catch ( UnsupportedEncodingException uee ) {
+        logger.warn("Error casting key to " + kclazz, uee);
+      }
+    }
+
+    // add everything in memory
+    Object[] memkeys = this.keySet().toArray();
+    for ( int i = 0; i < memkeys.length; i++ )
+      keys.add(kclazz.cast(memkeys[i]));
+
+    return keys;
+  }
+
+  public ArrayList<K> keysFromStore() throws HDBLRUMapException {
+    try {
+      hdbs.iterinit();
+    } catch ( StorageException se ) {
+      throw new HDBLRUMapException("Error initializing iterator for key retreival", se);
+    }
+
+    ArrayList<K> keys = new ArrayList<K>();
+
+    byte[] bkey;
+    K key;
+    while ( (bkey = hdbs.iternext()) != null ) {
+      try {
+        key = kclazz.cast( Bytes.convert(bkey, kclazz) );
+        keys.add(key);
+      } catch ( UnsupportedEncodingException uee ) {
+        logger.warn("Error casting key to " + kclazz, uee);
+      }
+    }
+
+    return keys;
+  }
+
+  public ArrayList<K> uniqueKeysFromStore() throws HDBLRUMapException {
+    try {
+      hdbs.iterinit();
+    } catch ( StorageException se ) {
+      throw new HDBLRUMapException("Error initializing iterator for key retreival", se);
+    }
+
+    ArrayList<K> keys = new ArrayList<K>();
+
+    byte[] bkey;
+    K key;
+    while ( (bkey = hdbs.iternext()) != null ) {
+      try {
+        key = kclazz.cast( Bytes.convert(bkey, kclazz) );
+        if ( !this.containsKey(key) ) keys.add(key);
+      } catch ( UnsupportedEncodingException uee ) {
+        logger.warn("Error casting key to " + kclazz, uee);
+      }
     }
 
     return keys;
@@ -203,13 +269,7 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
 
   @Override
   protected boolean removeLRU(AbstractLinkedMap.LinkEntry<K, V> entry) {
-    if ( readOnly ) {
-      return true;
-    }
-
-    if ( logger.isDebugEnabled() ) {
-      logger.debug("Committing '" + entry.getKey() + "' with '" + entry.getValue() + "'");
-    }
+    if ( readOnly ) return true;
 
     write(entry.getKey(), entry.getValue());
     return true;

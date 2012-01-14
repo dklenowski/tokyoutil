@@ -56,17 +56,12 @@ public abstract class Storage implements IStorage {
   }
 
   public boolean exists() {
-    if ( filestore == null ) {
-      return false;
-    }
+    if ( filestore == null ) return false;
     return filestore.exists();
   }
 
   public boolean isopen() {
-    if ( dbm != null ) {
-      return true;
-    }
-
+    if ( dbm != null ) return true;
     return false;
   }
 
@@ -79,9 +74,8 @@ public abstract class Storage implements IStorage {
   }
 
   public void iterinit() throws StorageException {
-    if ( dbm == null ) {
+    if ( dbm == null )
       throw new StorageException("Tokyo storage has not been initialized?");
-    }
 
     dbm.iterinit();
   }
@@ -115,9 +109,7 @@ public abstract class Storage implements IStorage {
   }
 
   public void clear() {
-    if ( dbm == null ) {
-      return;
-    }
+    if ( dbm == null ) return;
 
     if ( dbm instanceof HDB ) {
       ((HDB)dbm).vanish();
@@ -130,15 +122,14 @@ public abstract class Storage implements IStorage {
   }
 
   public void close() throws StorageException {
-    if ( dbm == null ) {
-      return;
-    }
+    if ( dbm == null ) return;
 
     try {
       Helper.close(dbm);
-      dbm = null;
     } catch ( HelperException he ) {
       throw new StorageException("Error closing " + filestore.toString(), he);
+    } finally {
+      dbm = null;
     }
   }
 
@@ -153,15 +144,10 @@ public abstract class Storage implements IStorage {
       throw new StorageException("Error opening " + file.toString(), he);
     }
 
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.strToBytes(key);
-    bval = dbm.get(bkey);
-
-    if ( bval == null ) {
+    byte[] bkey = Bytes.strToBytes(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return null;
-    }
 
     try {
       Helper.close(dbm);
@@ -185,18 +171,13 @@ public abstract class Storage implements IStorage {
   }
 
   public Vector<byte[]> keys() throws StorageException {
-    Vector<byte[]> keys;
+    long sz = (int)dbm.fsiz();
+    if ( sz > Integer.MAX_VALUE ) sz = Integer.MAX_VALUE;
+
+    Vector<byte[]> keys = new Vector<byte[]>((int)sz);
     byte[] key;
-    long sz;
 
-    sz = (int)dbm.fsiz();
-    if ( sz > Integer.MAX_VALUE ) {
-      sz = Integer.MAX_VALUE;
-    }
-
-    keys = new Vector<byte[]>((int)sz);
     dbm.iterinit();
-
     while ( (key = dbm.iternext()) != null ) {
       keys.add(key);
     }
@@ -209,22 +190,20 @@ public abstract class Storage implements IStorage {
    */
   public Object read(Object key, Class<?> keyclazz, Class<?> valueclazz)
       throws UnsupportedEncodingException {
+
     byte[] bkey = Bytes.convert(key, keyclazz);
-    if ( bkey == null ) {
+    if ( bkey == null )
       return null;
-    }
 
     return read(bkey, valueclazz);
   }
 
   public Object read(byte[] key, Class<?> valueclazz)
       throws UnsupportedEncodingException {
-    byte[] value;
 
-    value = dbm.get(key);
-    if ( value == null ) {
+    byte[] value = dbm.get(key);
+    if ( value == null )
       return value;
-    }
 
     return Bytes.convert(value, valueclazz);
   }
@@ -240,34 +219,26 @@ public abstract class Storage implements IStorage {
 
   // string keys
   public Object readObject(String key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.strToBytes(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.strToBytes(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return null;
-    }
 
     return Bytes.deserialize(bval);
   }
 
   public void write(String key, Object obj) throws StorageException {
-    byte[] bkey;
+    byte[] bkey = Bytes.strToBytes(key);
+
     byte[] bval;
-    byte[] orig;
-
-    bkey = Bytes.strToBytes(key);
-    if ( obj instanceof byte[] ) {
+    if ( obj instanceof byte[] )
       bval = (byte[])obj;
-    } else {
+    else
       bval = Util.serialize(obj);
-    }
 
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -277,17 +248,12 @@ public abstract class Storage implements IStorage {
 
   // object keys
   public void write(Object key, short value) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-    byte[] orig;
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = Bytes.shortToBytes(value);
 
-    bkey = Bytes.serialize(key);
-    bval = Bytes.shortToBytes(value);
-
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -296,30 +262,21 @@ public abstract class Storage implements IStorage {
   }
 
   public short readShort(Object key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.serialize(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return -1;
-    }
 
     return Bytes.bytesToShort(bval);
   }
 
   public void write(Object key, int value) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-    byte[] orig;
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = Bytes.intToBytes(value);
 
-    bkey = Bytes.serialize(key);
-    bval = Bytes.intToBytes(value);
-
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -328,30 +285,21 @@ public abstract class Storage implements IStorage {
   }
 
   public int readInt(Object key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.serialize(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return -1;
-    }
 
     return Bytes.bytesToInt(bval);
   }
 
   public void write(Object key, long value) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-    byte[] orig;
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = Bytes.longToBytes(value);
 
-    bkey = Bytes.serialize(key);
-    bval = Bytes.longToBytes(value);
-
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -360,30 +308,21 @@ public abstract class Storage implements IStorage {
   }
 
   public long readLong(Object key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.serialize(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return -1;
-    }
 
     return Bytes.bytesToLong(bval);
   }
 
   public void write(Object key, double value) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-    byte[] orig;
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = Bytes.doubleToBytes(value);
 
-    bkey = Bytes.serialize(key);
-    bval = Bytes.doubleToBytes(value);
-
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -392,30 +331,21 @@ public abstract class Storage implements IStorage {
   }
 
   public double readDouble(Object key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.serialize(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return -1;
-    }
 
     return Bytes.bytesToDouble(bval);
   }
 
   public void write(Object key, Object value) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-    byte[] orig;
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = Bytes.serialize(value);
 
-    bkey = Bytes.serialize(key);
-    bval = Bytes.serialize(value);
-
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -424,14 +354,10 @@ public abstract class Storage implements IStorage {
   }
 
   public Object readObject(Object key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.serialize(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.serialize(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return -1;
-    }
 
     return Bytes.deserialize(bval);
   }

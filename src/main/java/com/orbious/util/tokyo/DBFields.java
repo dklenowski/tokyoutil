@@ -14,29 +14,25 @@ public class DBFields {
   private HashMap<String, String> entries;
   private HashMap<KeyBytes, String> keys;
 
-  private static Logger logger;
+  private static final Logger logger = Loggers.logger();
 
   public DBFields() {
     entries = new HashMap<String, String>();
     keys = new HashMap<KeyBytes, String>();
-    logger = Loggers.logger();
   }
 
   public HashMap<KeyBytes, byte[]> entries() {
-    HashMap<KeyBytes, byte[]> hm;
-    Iterator<KeyBytes> it;
+    HashMap<KeyBytes, byte[]> hm = new HashMap<KeyBytes, byte[]>();
+
     KeyBytes key;
     String val;
 
-    hm = new HashMap<KeyBytes, byte[]>();
-
-    it = keys.keySet().iterator();
+    Iterator<KeyBytes> it = keys.keySet().iterator();
     while ( it.hasNext() ) {
       key = it.next();
       val = entries.get( keys.get(key) );
-      if ( val != null ) {
+      if ( val != null )
         hm.put(key, Bytes.strToBytes(val));
-      }
     }
 
     return hm;
@@ -54,19 +50,13 @@ public class DBFields {
   }
 
   public void set(byte[] key, byte[] value) {
-    String keystr;
-    String valuestr;
+    if ( (key == null) || (value == null) ) return;
 
-    keystr = Bytes.bytesToStr(key);
-
-    if ( value == null ) {
-      logger.warn("Cannot set field for " + keystr);
-      return;
-    }
-
-    valuestr = Bytes.bytesToStr(value);
+    String keystr = Bytes.bytesToStr(key);
+    String valuestr = Bytes.bytesToStr(value);
 
     logger.info("Setting key " + keystr + " with value " + valuestr);
+
     entries.put(keystr, valuestr);
     keys.put(new KeyBytes(key), keystr);
   }
@@ -77,9 +67,8 @@ public class DBFields {
   }
 
   public boolean contains(byte[] b) {
-    if ( keys.get(new KeyBytes(b)) == null ) {
+    if ( keys.get(new KeyBytes(b)) == null )
       return false;
-    }
 
     return true;
   }
@@ -104,11 +93,8 @@ public class DBFields {
 
     @Override
     public boolean equals(Object obj) {
-      if ( obj == null ) {
-        return false;
-      } else if ( !(obj instanceof KeyBytes) ) {
-        return false;
-      }
+      if ( obj == null ) return false;
+      else if ( !(obj instanceof KeyBytes) ) return false;
 
       return Arrays.equals(buffer, ((KeyBytes)obj).buffer());
     }

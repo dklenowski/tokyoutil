@@ -26,18 +26,15 @@ public class HDBStorage extends Storage {
 
   // int keys
   public void write(int key, Object obj) throws StorageException {
-    byte[] bkey;
+    byte[] bkey = Bytes.intToBytes(key);
+
     byte[] bval;
-    byte[] orig;
-
-    bkey = Bytes.intToBytes(key);
-    if ( obj instanceof byte[] ) {
+    if ( obj instanceof byte[] )
       bval = (byte[])obj;
-    } else {
+    else
       bval = Bytes.serialize(obj);
-    }
 
-    orig = dbm.get(bkey);
+    byte[] orig = dbm.get(bkey);
     if ( (orig != null) && Arrays.equals(bval, orig) ) {
       return;
     }
@@ -49,24 +46,17 @@ public class HDBStorage extends Storage {
   }
 
   public Object readObject(int key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.intToBytes(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.intToBytes(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return null;
-    }
 
     return Bytes.deserialize(bval);
   }
 
   public void write(int key, int val) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.intToBytes(key);
-    bval = Bytes.intToBytes(val);
+    byte[] bkey = Bytes.intToBytes(key);
+    byte[] bval = Bytes.intToBytes(val);
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -75,24 +65,17 @@ public class HDBStorage extends Storage {
   }
 
   public int readInt(int key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.intToBytes(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.intToBytes(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return -1;
-    }
 
     return Bytes.bytesToInt(bval);
   }
 
   public void write(int key, long val) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.intToBytes(key);
-    bval = Bytes.longToBytes(val);
+    byte[] bkey = Bytes.intToBytes(key);
+    byte[] bval = Bytes.longToBytes(val);
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -101,24 +84,17 @@ public class HDBStorage extends Storage {
   }
 
   public long readLong(int key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.intToBytes(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.intToBytes(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return -1L;
-    }
 
     return Bytes.bytesToLong(bval);
   }
 
   public void write(int key, double val) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.intToBytes(key);
-    bval = Bytes.doubleToBytes(val);
+    byte[] bkey = Bytes.intToBytes(key);
+    byte[] bval = Bytes.doubleToBytes(val);
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -127,35 +103,28 @@ public class HDBStorage extends Storage {
   }
 
   public double readDouble(int key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.intToBytes(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.intToBytes(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return -1L;
-    }
 
     return Bytes.bytesToDouble(bval);
   }
 
   // long keys
   public void write(long key, Object obj) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-    byte[] orig;
+    byte[] bkey = Bytes.longToBytes(key);
 
-    bkey = Bytes.longToBytes(key);
+    byte[] bval;
     if ( obj instanceof byte[] ) {
       bval = (byte[])obj;
     } else {
       bval = Bytes.serialize(obj);
     }
 
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -164,35 +133,27 @@ public class HDBStorage extends Storage {
   }
 
   public Object readObject(long key) {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.longToBytes(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bkey = Bytes.longToBytes(key);
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return null;
-    }
 
     return Bytes.deserialize(bval);
   }
 
   // double keys
   public void write(double key, Object obj) throws StorageException {
-    byte[] bkey;
+    byte[] bkey = Bytes.doubleToBytes(key);
+
     byte[] bval;
-    byte[] orig;
-
-    bkey = Bytes.doubleToBytes(key);
-    if ( obj instanceof byte[] ) {
+    if ( obj instanceof byte[] )
       bval = (byte[])obj;
-    } else {
+    else
       bval = Bytes.serialize(obj);
-    }
 
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -201,14 +162,11 @@ public class HDBStorage extends Storage {
   }
 
   public Object readObject(double key) {
-    byte[] bkey;
-    byte[] bval;
+    byte[] bkey = Bytes.doubleToBytes(key);
 
-    bkey = Bytes.doubleToBytes(key);
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
+    byte[] bval = dbm.get(bkey);
+    if ( bval == null )
       return null;
-    }
 
     return Bytes.deserialize(bval);
   }
