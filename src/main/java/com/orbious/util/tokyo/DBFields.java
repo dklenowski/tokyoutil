@@ -24,10 +24,10 @@ public class DBFields {
   public HashMap<KeyBytes, byte[]> entries() {
     HashMap<KeyBytes, byte[]> hm = new HashMap<KeyBytes, byte[]>();
 
+    Iterator<KeyBytes> it = keys.keySet().iterator();
+
     KeyBytes key;
     String val;
-
-    Iterator<KeyBytes> it = keys.keySet().iterator();
     while ( it.hasNext() ) {
       key = it.next();
       val = entries.get( keys.get(key) );
@@ -54,7 +54,6 @@ public class DBFields {
 
     String keystr = Bytes.bytesToStr(key);
     String valuestr = Bytes.bytesToStr(value);
-
     logger.info("Setting key " + keystr + " with value " + valuestr);
 
     entries.put(keystr, valuestr);
@@ -93,8 +92,10 @@ public class DBFields {
 
     @Override
     public boolean equals(Object obj) {
-      if ( obj == null ) return false;
-      else if ( !(obj instanceof KeyBytes) ) return false;
+      if ( obj == null )
+        return false;
+      else if ( !(obj instanceof KeyBytes) )
+        return false;
 
       return Arrays.equals(buffer, ((KeyBytes)obj).buffer());
     }

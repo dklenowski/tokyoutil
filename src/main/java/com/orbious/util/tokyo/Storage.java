@@ -200,11 +200,9 @@ public abstract class Storage implements IStorage {
 
   public Object read(byte[] key, Class<?> valueclazz)
       throws UnsupportedEncodingException {
-
     byte[] value = dbm.get(key);
-    if ( value == null )
-      return value;
 
+    if ( value == null ) return value;
     return Bytes.convert(value, valueclazz);
   }
 
@@ -221,9 +219,8 @@ public abstract class Storage implements IStorage {
   public Object readObject(String key) {
     byte[] bkey = Bytes.strToBytes(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return null;
 
+    if ( bval == null ) return null;
     return Bytes.deserialize(bval);
   }
 
@@ -264,9 +261,8 @@ public abstract class Storage implements IStorage {
   public short readShort(Object key) {
     byte[] bkey = Bytes.serialize(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return -1;
 
+    if ( bval == null ) return -1;
     return Bytes.bytesToShort(bval);
   }
 
@@ -287,9 +283,8 @@ public abstract class Storage implements IStorage {
   public int readInt(Object key) {
     byte[] bkey = Bytes.serialize(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return -1;
 
+    if ( bval == null ) return -1;
     return Bytes.bytesToInt(bval);
   }
 
@@ -310,9 +305,8 @@ public abstract class Storage implements IStorage {
   public long readLong(Object key) {
     byte[] bkey = Bytes.serialize(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return -1;
 
+    if ( bval == null ) return -1;
     return Bytes.bytesToLong(bval);
   }
 
@@ -333,9 +327,8 @@ public abstract class Storage implements IStorage {
   public double readDouble(Object key) {
     byte[] bkey = Bytes.serialize(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return -1;
 
+    if ( bval == null ) return -1;
     return Bytes.bytesToDouble(bval);
   }
 
@@ -356,9 +349,8 @@ public abstract class Storage implements IStorage {
   public Object readObject(Object key) {
     byte[] bkey = Bytes.serialize(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return -1;
 
+    if ( bval == null ) return -1;
     return Bytes.deserialize(bval);
   }
 }

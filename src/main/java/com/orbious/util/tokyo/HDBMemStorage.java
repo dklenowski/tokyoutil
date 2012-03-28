@@ -23,13 +23,9 @@ public class HDBMemStorage<K, V> extends MemStorage<K, V> implements IFileStorag
   public void updateFields() { }
 
   public String cfg(IConfig key) {
-    String cfgstr;
+    String cfgstr = cfgstr();
 
-    cfgstr = cfgstr();
-    if ( cfgstr == null ) {
-      return null;
-    }
-
+    if ( cfgstr == null ) return null;
     return Config.get(cfgstr, key);
   }
 
@@ -64,9 +60,7 @@ public class HDBMemStorage<K, V> extends MemStorage<K, V> implements IFileStorag
 
     super.close();
 
-    if ( e != null ) {
-      throw e;
-    }
+    if ( e != null ) throw e;
   }
 
   public String cfgstr() {

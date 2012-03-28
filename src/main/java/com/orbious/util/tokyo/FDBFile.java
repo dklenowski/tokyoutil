@@ -22,12 +22,8 @@ public class FDBFile extends FDBStorage implements IFileStorage {
    * Interface methods.
    */
   public String cfg(IConfig key) {
-    String cfgstr;
-
-    cfgstr = cfgstr();
-    if ( cfgstr == null ) {
-      return null;
-    }
+    String cfgstr = cfgstr();
+    if ( cfgstr == null ) return null;
 
     return Config.get(cfgstr, key);
   }
@@ -36,9 +32,8 @@ public class FDBFile extends FDBStorage implements IFileStorage {
   public void open() throws StorageException {
     super.open();
     index = readInt(Config.config_fdb_idx);
-    if ( index == -1 ) {
+    if ( index == -1 )
       index = 2;
-    }
   }
 
   /*
@@ -63,10 +58,7 @@ public class FDBFile extends FDBStorage implements IFileStorage {
     }
 
     super.close();
-
-    if ( e != null ) {
-      throw e;
-    }
+    if ( e != null ) throw e;
   }
 
   public String cfgstr() {
@@ -77,9 +69,7 @@ public class FDBFile extends FDBStorage implements IFileStorage {
    * The following methods update the indexes while the inherited methods dont!
    */
   public int put(Object value) throws StorageException {
-    int idx;
-    idx = index++;
-
+    int idx = index++;
     write(idx, value);
     return idx;
   }
@@ -89,9 +79,7 @@ public class FDBFile extends FDBStorage implements IFileStorage {
   }
 
   public int put(byte[] value) throws StorageException {
-    int idx;
-    idx = index++;
-
+    int idx = index++;
     write(idx, value);
     return idx;
   }
@@ -101,9 +89,7 @@ public class FDBFile extends FDBStorage implements IFileStorage {
   }
 
   public int put(int value) throws StorageException {
-    int idx;
-    idx = index++;
-
+    int idx = index++;
     write(idx, value);
     return idx;
   }
@@ -113,9 +99,7 @@ public class FDBFile extends FDBStorage implements IFileStorage {
   }
 
   public int put(long value) throws StorageException {
-    int idx;
-    idx = index++;
-
+    int idx = index++;
     write(idx, value);
     return idx;
   }
@@ -125,9 +109,7 @@ public class FDBFile extends FDBStorage implements IFileStorage {
   }
 
   public int put(double value) throws StorageException {
-    int idx;
-    idx = index++;
-
+    int idx = index++;
     write(idx, value);
     return idx;
   }

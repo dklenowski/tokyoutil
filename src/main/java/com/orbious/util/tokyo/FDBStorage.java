@@ -30,21 +30,17 @@ public class FDBStorage extends Storage {
   }
 
   public void write(int key, Object obj) throws StorageException {
-    byte[] bkey;
+    byte[] bkey = Bytes.strToBytes(Integer.toString(key));
+
     byte[] bval;
-    byte[] orig;
-
-    bkey = Bytes.strToBytes(Integer.toString(key));
-    if ( obj instanceof byte[] ) {
+    if ( obj instanceof byte[] )
       bval = (byte[])obj;
-    } else {
+    else
       bval = Util.serialize(obj);
-    }
 
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -53,24 +49,16 @@ public class FDBStorage extends Storage {
   }
 
   public Object readObject(int key) {
-    byte[] bkey;
-    byte[] bval;
+    byte[] bkey = Bytes.strToBytes(Integer.toString(key));
+    byte[] bval = dbm.get(bkey);
 
-    bkey = Bytes.strToBytes(Integer.toString(key));
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
-      return null;
-    }
-
+    if ( bval == null ) return null;
     return Util.deserialize(bval);
   }
 
   public void write(int key, int val) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.strToBytes(Integer.toString(key));
-    bval = Bytes.intToBytes(val);
+    byte[] bkey = Bytes.strToBytes(Integer.toString(key));
+    byte[] bval = Bytes.intToBytes(val);
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -79,24 +67,16 @@ public class FDBStorage extends Storage {
   }
 
   public int readInt(int key) {
-    byte[] bkey;
-    byte[] bval;
+    byte[] bkey = Bytes.strToBytes(Integer.toString(key));
+    byte[] bval = dbm.get(bkey);
 
-    bkey = Bytes.strToBytes(Integer.toString(key));
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
-      return -1;
-    }
-
+    if ( bval == null ) return -1;
     return Bytes.bytesToInt(bval);
   }
 
   public void write(int key, long val) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.strToBytes(Integer.toString(key));
-    bval = Bytes.longToBytes(val);
+    byte[] bkey = Bytes.strToBytes(Integer.toString(key));
+    byte[] bval = Bytes.longToBytes(val);
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -105,24 +85,16 @@ public class FDBStorage extends Storage {
   }
 
   public long readLong(int key) {
-    byte[] bkey;
-    byte[] bval;
+    byte[] bkey = Bytes.strToBytes(Integer.toString(key));
+    byte[] bval = dbm.get(bkey);
 
-    bkey = Bytes.strToBytes(Integer.toString(key));
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
-      return -1L;
-    }
-
+    if ( bval == null ) return -1L;
     return Bytes.bytesToLong(bval);
   }
 
   public void write(int key, double val) throws StorageException {
-    byte[] bkey;
-    byte[] bval;
-
-    bkey = Bytes.strToBytes(Integer.toString(key));
-    bval = Bytes.doubleToBytes(val);
+    byte[] bkey = Bytes.strToBytes(Integer.toString(key));
+    byte[] bval = Bytes.doubleToBytes(val);
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -131,35 +103,26 @@ public class FDBStorage extends Storage {
   }
 
   public double readDouble(int key) {
-    byte[] bkey;
-    byte[] bval;
+    byte[] bkey = Bytes.strToBytes(Integer.toString(key));
+    byte[] bval = dbm.get(bkey);
 
-    bkey = Bytes.strToBytes(Integer.toString(key));
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
-      return -1L;
-    }
-
+    if ( bval == null ) return -1L;
     return Bytes.bytesToDouble(bval);
   }
 
   // long keys
   public void write(long key, Object obj) throws StorageException {
-    byte[] bkey;
+    byte[] bkey = Bytes.strToBytes(Long.toString(key));
+
     byte[] bval;
-    byte[] orig;
-
-    bkey = Bytes.strToBytes(Long.toString(key));
-    if ( obj instanceof byte[] ) {
+    if ( obj instanceof byte[] )
       bval = (byte[])obj;
-    } else {
+    else
       bval = Util.serialize(obj);
-    }
 
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -168,35 +131,26 @@ public class FDBStorage extends Storage {
   }
 
   public Object readObject(long key) {
-    byte[] bkey;
-    byte[] bval;
+    byte[] bkey = Bytes.strToBytes(Long.toString(key));
+    byte[] bval = dbm.get(bkey);
 
-    bkey = Bytes.strToBytes(Long.toString(key));
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
-      return null;
-    }
-
+    if ( bval == null ) return null;
     return Util.deserialize(bval);
   }
 
   // double keys
   public void write(double key, Object obj) throws StorageException {
-    byte[] bkey;
+    byte[] bkey = Bytes.strToBytes(Double.toString(key));
+
     byte[] bval;
-    byte[] orig;
-
-    bkey = Bytes.strToBytes(Double.toString(key));
-    if ( obj instanceof byte[] ) {
+    if ( obj instanceof byte[] )
       bval = (byte[])obj;
-    } else {
+    else
       bval = Util.serialize(obj);
-    }
 
-    orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    byte[] orig = dbm.get(bkey);
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if  (!dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -205,15 +159,10 @@ public class FDBStorage extends Storage {
   }
 
   public Object readObject(double key) {
-    byte[] bkey;
-    byte[] bval;
+    byte[] bkey = Bytes.strToBytes(Double.toString(key));
+    byte[] bval = dbm.get(bkey);
 
-    bkey = Bytes.strToBytes(Double.toString(key));
-    bval = dbm.get(bkey);
-    if ( bval == null ) {
-      return null;
-    }
-
+    if ( bval == null ) return null;
     return Util.deserialize(bval);
   }
 }

@@ -14,33 +14,26 @@ public class Helper {
       throws HelperException {
     DBM dbm;
 
-    if ( clazz == HDB.class ) {
+    if ( clazz == HDB.class )
       dbm = openhdb(file, size, readOnly);
-    } else if ( clazz == FDB.class ) {
+    else if ( clazz == FDB.class )
       dbm = openfdb(file, readOnly);
-    } else {
-      throw new UnsupportedOperationException(
-          "Unsupported storage type for tokyo storage");
-    }
+    else
+      throw new UnsupportedOperationException("Unsupported storage type for tokyo storage");
 
     return dbm;
   }
 
   public static HDB openhdb(File file, int size, boolean readOnly)
       throws HelperException {
-    HDB hdb;
+    HDB hdb = new HDB();
+    if ( size != -1 ) hdb.setcache(size);
+
     int mode;
-
-    hdb = new HDB();
-    if ( size != -1 ) {
-      hdb.setcache(size);
-    }
-
-    if ( readOnly ) {
+    if ( readOnly )
       mode = HDB.OREADER | HDB.ONOLCK;
-    } else {
+    else
       mode = HDB.OWRITER | HDB.OCREAT;
-    }
 
     if ( !hdb.open(file.toString(), mode) ) {
       throw new HelperException("Failed to initialize hdb storage ",
@@ -51,16 +44,13 @@ public class Helper {
   }
 
   public static FDB openfdb(File file, boolean readOnly) throws HelperException {
-    FDB fdb;
+    FDB fdb = new FDB();
+
     int mode;
-
-    fdb = new FDB();
-
-    if ( readOnly ) {
+    if ( readOnly )
       mode = FDB.OREADER | FDB.ONOLCK;
-    } else {
+    else
       mode = FDB.OWRITER | FDB.OCREAT;
-    }
 
     if ( !fdb.open(file.toString(), mode) ) {
       throw new HelperException("Failed to initialize fdb storage ",
@@ -71,54 +61,38 @@ public class Helper {
   }
 
   public static void close(DBM dbm) throws HelperException {
-    if ( dbm == null ) {
-      return;
-    }
+    if ( dbm == null ) return;
 
-    String emsg = "";
-    int ecode = -1;
-
+    boolean doerror = false;
     if ( dbm instanceof HDB ) {
-      if ( !((HDB)dbm).close() ) {
-        emsg =  errmsg(dbm);
-        ecode = ecode(dbm);
-      }
+      if ( !((HDB)dbm).close() )
+        doerror = true;
     } else if ( dbm instanceof FDB ) {
-      if ( !((FDB)dbm).close() ) {
-        emsg =  errmsg(dbm);
-        ecode = ecode(dbm);
-      }
+      if ( !((FDB)dbm).close() )
+        doerror = true;
     } else {
-      throw new UnsupportedOperationException(
-          "Unsupported storage type for tokyo storage");
+      throw new UnsupportedOperationException("Unsupported storage type for tokyo storage");
     }
 
-    if ( emsg != "" ) {
-      throw new HelperException("Failed to close tokyo storage ", ecode, emsg);
-    }
+    if ( doerror )
+      throw new HelperException("Failed to close tokyo storage ", ecode(dbm), errmsg(dbm));
   }
 
   public static int ecode(DBM dbm) {
-    if ( dbm instanceof HDB ) {
+    if ( dbm instanceof HDB )
       return ((HDB)dbm).ecode();
-    } else if ( dbm instanceof FDB ) {
+    else if ( dbm instanceof FDB )
       return ((FDB)dbm).ecode();
-    }
 
     return -1;
   }
 
   public static String errmsg(DBM dbm) {
-    if ( dbm instanceof HDB ) {
+    if ( dbm instanceof HDB )
       return ((HDB)dbm).errmsg();
-    } else if ( dbm instanceof FDB ) {
+    else if ( dbm instanceof FDB )
       return ((FDB)dbm).errmsg();
-    }
 
     return "";
   }
-
-
-
-
 }

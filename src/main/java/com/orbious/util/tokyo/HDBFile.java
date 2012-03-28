@@ -19,22 +19,18 @@ public class HDBFile extends HDBStorage implements IFileStorage {
     String cfgstr;
 
     cfgstr = cfgstr();
-    if ( cfgstr == null ) {
-      return null;
-    }
 
+    if ( cfgstr == null ) return null;
     return Config.get(cfgstr, key);
   }
 
   public void writecfg() throws StorageException {
-    String xmlstr;
-
     if ( readOnly ) {
       throw new StorageException("Cannot write config to a readOnly filestore " +
           filestore.toString());
     }
 
-    xmlstr = null;
+    String xmlstr = null;
     try {
       xmlstr = Config.xmlstr();
     } catch ( ConfigException ce ) {
@@ -58,9 +54,7 @@ public class HDBFile extends HDBStorage implements IFileStorage {
 
     super.close();
 
-    if ( e != null ) {
-      throw e;
-    }
+    if ( e != null ) throw e;
   }
 
   public String cfgstr() {

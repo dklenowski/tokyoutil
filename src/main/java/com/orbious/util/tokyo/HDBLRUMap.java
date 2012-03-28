@@ -4,15 +4,13 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import org.apache.commons.collections15.map.AbstractLinkedMap;
-import org.apache.commons.collections15.map.LRUMap;
 import org.apache.log4j.Logger;
-
 import com.orbious.util.Bytes;
 import com.orbious.util.Loggers;
+import com.orbious.util.tokyo.apache.LRURndMap;
 
-public class HDBLRUMap<K, V> extends LRUMap<K, V> {
+public class HDBLRUMap<K, V> extends LRURndMap<K, V> {
 
   private static final long serialVersionUID = 1L;
 
@@ -157,11 +155,10 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
     }
 
     ArrayList<K> keys = new ArrayList<K>();
-    byte[][] skip = new byte[keystoskip.length][];
 
-    for ( int i = 0; i < keystoskip.length; i++ ) {
+    byte[][] skip = new byte[keystoskip.length][];
+    for ( int i = 0; i < keystoskip.length; i++ )
       skip[i] = Bytes.strToBytes(keystoskip[i]);
-    }
 
     byte[] bkey;
     K key;
@@ -221,6 +218,44 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
     return keys;
   }
 
+  public ArrayList<K> keysFromStore(String[] keystoskip) throws HDBLRUMapException {
+    try {
+      hdbs.iterinit();
+    } catch ( StorageException se ) {
+      throw new HDBLRUMapException("Error initializing iterator for key retreival", se);
+    }
+
+    ArrayList<K> keys = new ArrayList<K>();
+
+    byte[][] skip = new byte[keystoskip.length][];
+    for ( int i = 0; i < keystoskip.length; i++ )
+      skip[i] = Bytes.strToBytes(keystoskip[i]);
+
+    byte[] bkey;
+    K key;
+    while ( (bkey = hdbs.iternext()) != null ) {
+      try {
+        for ( int i = 0; i < skip.length; i++ ) {
+          if ( Arrays.equals(bkey, skip[i]) ) {
+            bkey = null;
+            break;
+          }
+        }
+
+        if ( bkey == null )
+          continue;
+
+        key = kclazz.cast( Bytes.convert(bkey, kclazz) );
+        keys.add(key);
+      } catch ( UnsupportedEncodingException uee ) {
+        logger.warn("Error casting key to " + kclazz, uee);
+      }
+    }
+
+    return keys;
+  }
+
+  // faster
   public ArrayList<K> keysFromStore() throws HDBLRUMapException {
     try {
       hdbs.iterinit();
@@ -236,6 +271,43 @@ public class HDBLRUMap<K, V> extends LRUMap<K, V> {
       try {
         key = kclazz.cast( Bytes.convert(bkey, kclazz) );
         keys.add(key);
+      } catch ( UnsupportedEncodingException uee ) {
+        logger.warn("Error casting key to " + kclazz, uee);
+      }
+    }
+
+    return keys;
+  }
+
+  public ArrayList<K> uniqueKeysFromStore(String[] keystoskip) throws HDBLRUMapException {
+    try {
+      hdbs.iterinit();
+    } catch ( StorageException se ) {
+      throw new HDBLRUMapException("Error initializing iterator for key retreival", se);
+    }
+
+    ArrayList<K> keys = new ArrayList<K>();
+
+    byte[][] skip = new byte[keystoskip.length][];
+    for ( int i = 0; i < keystoskip.length; i++ )
+      skip[i] = Bytes.strToBytes(keystoskip[i]);
+
+    byte[] bkey;
+    K key;
+    while ( (bkey = hdbs.iternext()) != null ) {
+      try {
+        for ( int i = 0; i < skip.length; i++ ) {
+          if ( Arrays.equals(bkey, skip[i]) ) {
+            bkey = null;
+            break;
+          }
+        }
+
+        if ( bkey == null )
+          continue;
+
+        key = kclazz.cast( Bytes.convert(bkey, kclazz) );
+        if ( !this.containsKey(key) ) keys.add(key);
       } catch ( UnsupportedEncodingException uee ) {
         logger.warn("Error casting key to " + kclazz, uee);
       }

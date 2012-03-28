@@ -65,11 +65,8 @@ public abstract class MemStorage<K, V> implements IStorage {
   }
 
   public void open() throws StorageException {
-    byte[] key;
-
-    if ( readOnly && !filestore.exists() ) {
+    if ( readOnly && !filestore.exists() )
       throw new StorageException("File does not exist, cannot open readOnly?");
-    }
 
     try {
       dbm = Helper.open(filestore, filetype, -1, false);
@@ -78,6 +75,8 @@ public abstract class MemStorage<K, V> implements IStorage {
     }
 
     dbm.iterinit();
+
+    byte[] key;
     while ( (key = dbm.iternext()) != null ) {
       if ( fields.contains(key) ) {
         fields.set(key, dbm.get(key));
@@ -116,26 +115,8 @@ public abstract class MemStorage<K, V> implements IStorage {
   }
 
   public void close() throws StorageException {
-    Iterator<K> it;
-    K key;
-    HashMap<KeyBytes, byte[]> entries;
-    Iterator<KeyBytes> it2;
-    KeyBytes kb;
-
     if ( !readOnly ) {
-      it = map.keySet().iterator();
-      while ( it.hasNext() ) {
-        key = it.next();
-        dbm.put(Bytes.serialize(key), Bytes.serialize(map.get(key)));
-      }
-
-
-      entries = fields.entries();
-      it2 = entries.keySet().iterator();
-      while ( it2.hasNext() ) {
-        kb = it2.next();
-        dbm.put(kb.buffer(), entries.get(kb));
-      }
+      write();
     }
 
     try {
@@ -143,6 +124,25 @@ public abstract class MemStorage<K, V> implements IStorage {
       dbm = null;
     } catch ( HelperException he ) {
       throw new StorageException("Error closing " + filestore.toString(), he);
+    }
+  }
+
+  private void write() {
+    Iterator<K> it = map.keySet().iterator();
+
+    K key;
+    while ( it.hasNext() ) {
+      key = it.next();
+      dbm.put(Bytes.serialize(key), Bytes.serialize(map.get(key)));
+    }
+
+    HashMap<KeyBytes, byte[]> entries = fields.entries();
+    Iterator<KeyBytes> it2 = entries.keySet().iterator();
+
+    KeyBytes kb;
+    while ( it2.hasNext() ) {
+      kb = it2.next();
+      dbm.put(kb.buffer(), entries.get(kb));
     }
   }
 

@@ -35,9 +35,8 @@ public class HDBStorage extends Storage {
       bval = Bytes.serialize(obj);
 
     byte[] orig = dbm.get(bkey);
-    if ( (orig != null) && Arrays.equals(bval, orig) ) {
+    if ( (orig != null) && Arrays.equals(bval, orig) )
       return;
-    }
 
     if ( !dbm.put(bkey, bval) ) {
       throw new StorageException("Failed to write key " + key + " to " +
@@ -48,9 +47,8 @@ public class HDBStorage extends Storage {
   public Object readObject(int key) {
     byte[] bkey = Bytes.intToBytes(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return null;
 
+    if ( bval == null ) return null;
     return Bytes.deserialize(bval);
   }
 
@@ -67,9 +65,8 @@ public class HDBStorage extends Storage {
   public int readInt(int key) {
     byte[] bkey = Bytes.intToBytes(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return -1;
 
+    if ( bval == null ) return -1;
     return Bytes.bytesToInt(bval);
   }
 
@@ -86,9 +83,8 @@ public class HDBStorage extends Storage {
   public long readLong(int key) {
     byte[] bkey = Bytes.intToBytes(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return -1L;
 
+    if ( bval == null ) return -1L;
     return Bytes.bytesToLong(bval);
   }
 
@@ -105,9 +101,8 @@ public class HDBStorage extends Storage {
   public double readDouble(int key) {
     byte[] bkey = Bytes.intToBytes(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return -1L;
 
+    if ( bval == null ) return -1L;
     return Bytes.bytesToDouble(bval);
   }
 
@@ -135,9 +130,8 @@ public class HDBStorage extends Storage {
   public Object readObject(long key) {
     byte[] bkey = Bytes.longToBytes(key);
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return null;
 
+    if ( bval == null ) return null;
     return Bytes.deserialize(bval);
   }
 
@@ -163,11 +157,9 @@ public class HDBStorage extends Storage {
 
   public Object readObject(double key) {
     byte[] bkey = Bytes.doubleToBytes(key);
-
     byte[] bval = dbm.get(bkey);
-    if ( bval == null )
-      return null;
 
+    if ( bval == null ) return null;
     return Bytes.deserialize(bval);
   }
 }
