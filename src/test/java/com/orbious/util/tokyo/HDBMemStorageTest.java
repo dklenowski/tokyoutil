@@ -56,11 +56,13 @@ public class HDBMemStorageTest {
     private int ivalue = -1;
     private float fvalue = Float.NaN;
     private double dvalue = Double.NaN;
+    private long lvalue = -1;
     private boolean bvalue = false;
 
     private TestConfig(String value) { this.svalue = value; }
     private TestConfig(int value) { this.ivalue = value; }
     private TestConfig(double value) { this.dvalue = value; }
+    private TestConfig(long value) { this.lvalue = value; }
     private TestConfig(boolean value) { this.bvalue = value; }
 
     public boolean isString() { return (svalue != null) ? true : false; }
@@ -77,6 +79,9 @@ public class HDBMemStorageTest {
 
     public boolean isBool() { return true; }
     public boolean asBool() { return bvalue; }
+
+    public boolean isLong() { return (lvalue != -1) ? true : false; }
+    public long asLong() { return lvalue; }
 
     public String getName() { return this.name(); }
   }
