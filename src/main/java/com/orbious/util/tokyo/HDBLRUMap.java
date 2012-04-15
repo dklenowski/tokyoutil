@@ -204,7 +204,8 @@ public class HDBLRUMap<K, V> extends LRURndMap<K, V> {
     while ( (bkey = hdbs.iternext()) != null ) {
       try {
         key = kclazz.cast( Bytes.convert(bkey, kclazz) );
-        if ( !this.containsKey(key) ) keys.add(key);
+        if ( !this.containsKey(key) )
+          keys.add(key);
       } catch ( UnsupportedEncodingException uee ) {
         logger.warn("Error casting key to " + kclazz, uee);
       }
@@ -303,11 +304,11 @@ public class HDBLRUMap<K, V> extends LRURndMap<K, V> {
           }
         }
 
-        if ( bkey == null )
-          continue;
+        if ( bkey == null ) continue;
 
         key = kclazz.cast( Bytes.convert(bkey, kclazz) );
-        if ( !this.containsKey(key) ) keys.add(key);
+        if ( !this.containsKey(key) )
+          keys.add(key);
       } catch ( UnsupportedEncodingException uee ) {
         logger.warn("Error casting key to " + kclazz, uee);
       }
@@ -330,7 +331,8 @@ public class HDBLRUMap<K, V> extends LRURndMap<K, V> {
     while ( (bkey = hdbs.iternext()) != null ) {
       try {
         key = kclazz.cast( Bytes.convert(bkey, kclazz) );
-        if ( !this.containsKey(key) ) keys.add(key);
+        if ( !this.containsKey(key) )
+          keys.add(key);
       } catch ( UnsupportedEncodingException uee ) {
         logger.warn("Error casting key to " + kclazz, uee);
       }
