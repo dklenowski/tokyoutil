@@ -17,11 +17,17 @@ public class LRURndMap<K, V> extends LRUMap<K, V> {
   }
 
   // this allows us to get a random key
-  public K random(Random rnd) {
+  public K random(Random rnd, boolean nullable) {
     if ( size() == 0 )
       return null;
 
-    int i = rnd.nextInt(data.length);
+    int i;
+    if ( !nullable ) {
+      i = rnd.nextInt(data.length);
+    } else {
+      i = rnd.nextInt(data.length+1)-1;
+      if ( i < 0 ) return null;
+    }
 
     if ( data[i] != null )
       return data[i].getKey();

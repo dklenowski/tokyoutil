@@ -25,7 +25,7 @@ public class LRURndMapTest {
     int j;
     Random rnd = new Random();
     for ( int i = 0; i < 200; i++ ) {
-      j = map.random(rnd);
+      j = map.random(rnd, false);
       if ( (j < 0) || (j > 100) )
         fail("Invalid j: 0 > " + j + " > 100");
     }
