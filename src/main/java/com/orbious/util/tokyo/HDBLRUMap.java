@@ -211,11 +211,15 @@ public class HDBLRUMap<K, V> extends LRURndMap<K, V> {
       }
     }
 
+    int sz = keys.size();
+    logger.info("Added " + sz + " keys from filestore " + filestore);
+
     // add everything in memory
     Object[] memkeys = this.keySet().toArray();
     for ( int i = 0; i < memkeys.length; i++ )
       keys.add(kclazz.cast(memkeys[i]));
 
+    logger.info("Added " + (keys.size()-sz) + " keys from memory");
     return keys;
   }
 
