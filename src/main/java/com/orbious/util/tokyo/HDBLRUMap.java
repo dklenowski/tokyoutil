@@ -222,6 +222,39 @@ public class HDBLRUMap<K, V> extends LRURndMap<K, V> {
     logger.info("Added " + (keys.size()-sz) + " keys from memory");
     return keys;
   }
+  
+  public ArrayList<K> keys(int sz) throws HDBLRUMapException {
+    try {
+      hdbs.iterinit();
+    } catch ( StorageException se ) {
+      throw new HDBLRUMapException("Error initializing iterator for key retreival", se);
+    }
+
+    ArrayList<K> keys = new ArrayList<K>();
+
+    // add everything in memory
+    Object[] memkeys = this.keySet().toArray();
+    for ( int i = 0; i < memkeys.length; i++ ) {
+      keys.add(kclazz.cast(memkeys[i]));
+      if ( keys.size() > sz ) break;
+    }
+    
+    byte[] bkey;
+    K key;
+    while ( (bkey = hdbs.iternext()) != null ) {
+      try {
+        key = kclazz.cast( Bytes.convert(bkey, kclazz) );
+        if ( !this.containsKey(key) ) {
+          keys.add(key);
+          if ( keys.size() > sz ) break;
+        }
+      } catch ( UnsupportedEncodingException uee ) {
+        logger.warn("Error casting key to " + kclazz, uee);
+      }
+    }
+    
+    return keys;
+  }
 
   public ArrayList<K> keysFromStore(String[] keystoskip) throws HDBLRUMapException {
     try {
