@@ -31,9 +31,9 @@ public class Helper {
 
     int mode;
     if ( readOnly )
-      mode = HDB.OREADER | HDB.ONOLCK;
+      mode = HDB.OREADER | HDB.ONOLCK | HDB.TLARGE;
     else
-      mode = HDB.OWRITER | HDB.OCREAT;
+      mode = HDB.OWRITER | HDB.OCREAT | HDB.TLARGE;
 
     if ( !hdb.open(file.toString(), mode) ) {
       throw new HelperException("Failed to initialize hdb storage ",
