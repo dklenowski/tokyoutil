@@ -142,7 +142,7 @@ public class HDBLRUMap<K, V> extends LRURndMap<K, V> {
     hdbs.write(key, kclazz, value, vclazz);
   }
 
-  // TODO
+  // TODO: change implementation
   // removed the uue exception code, since we are writing String key/value
   // configuration pairs.
   // need to implement something like DBFields.
