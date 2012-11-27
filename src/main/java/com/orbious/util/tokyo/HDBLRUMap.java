@@ -64,10 +64,12 @@ public class HDBLRUMap<K, V> extends LRURndMap<K, V> {
   public void close() throws HDBLRUMapException {
     if ( hdbs == null ) return;
 
-    logger.info("Closing " + filestore.toString());
+    logger.info("Closing " + filestore.toString() + " with " + this.keySet().size() + " keys");
 
-    if ( !readOnly )
+    if ( !readOnly ) {
+      logger.info("Opened readwrite, writing keys in memory");
       closewrite();
+    }
 
     try {
       hdbs.close();
