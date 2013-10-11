@@ -4,7 +4,7 @@
   <groupId>com.orbious.util.tokyo</groupId>
   <artifactId>tokyoutil</artifactId>
   <packaging>jar</packaging>
-  <version>3.0</version>
+  <version>3.1</version>
   <name>tokyoutil</name>
   <description>Tokyo Cabinet Utilities.</description>
   <url>https://github.com/dklenowski/tokyoutil</url>
@@ -24,7 +24,7 @@
     <dependency>
       <groupId>com.orbious.util</groupId>
       <artifactId>javautil</artifactId>
-      <version>6.3</version>
+      <version>6.7</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
