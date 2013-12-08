@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import com.orbious.util.Bytes;
 
-// TODO: More tests
+// TODO: low priority - More tests
 
 public class HDBStorageTest {
 

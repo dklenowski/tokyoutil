@@ -97,7 +97,8 @@ public class Dumper {
             valueclass + " to " + outfile);
         dumpValue(keystr, keyclass, valueclass, tokyofile, outfile);
       } else {
-        // TODO
+        System.err.println("keystring=null not supported?");
+        System.exit(1);
       }
     }
   }

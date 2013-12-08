@@ -144,11 +144,10 @@ public class HDBLRUMap<K, V> extends LRURndMap<K, V> {
     hdbs.write(key, kclazz, value, vclazz);
   }
 
-  // TODO: change implementation
+  // TODO: low priority - change implementation
   // removed the uue exception code, since we are writing String key/value
   // configuration pairs.
   // need to implement something like DBFields.
-
   public ArrayList<K> keys(String[] keystoskip) throws HDBLRUMapException {
     try {
       hdbs.iterinit();
